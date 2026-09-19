@@ -17,7 +17,7 @@ export interface ScreenProps {
   children: ReactNode;
   scroll?: boolean;
   keyboard?: boolean;
-  safeArea?: Edge[];
+  safeArea?: Edge[] | boolean;
   backgroundColor?: string;
   style?: StyleProp<ViewStyle>;
   contentContainerStyle?: StyleProp<ViewStyle>;
@@ -115,13 +115,32 @@ export default function Screen({
       content
     );
 
+  const edges: Edge[] = Array.isArray(safeArea)
+    ? safeArea
+    : safeArea === true
+    ? ["top", "bottom"]
+    : [];
+
+  const isSafeAreaActive = edges.length > 0;
+
+  if (isSafeAreaActive) {
+    return (
+      <SafeAreaView
+        edges={edges}
+        style={[{ flex: 1, backgroundColor: finalBackgroundColor }, style]}
+      >
+        {wrappedContent}
+        {overlay}
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView
-      edges={safeArea}
+    <View
       style={[{ flex: 1, backgroundColor: finalBackgroundColor }, style]}
     >
       {wrappedContent}
       {overlay}
-    </SafeAreaView>
+    </View>
   );
 }

@@ -1,0 +1,198 @@
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail, Lock, AlertCircle } from 'lucide-react-native';
+
+import { Screen } from '@/components/layout';
+import { Button } from '@/components/ui';
+import { AppRoute } from '@/routes';
+import {
+  AuthHeader,
+  ControlledInput,
+  SocialAuthButtons,
+  AuthDivider,
+  signInSchema,
+  SignInFormValues,
+  useLogin,
+  useGoogleAuth,
+} from '@/features/auth';
+
+export default function SignInScreen() {
+  const router = useRouter();
+  const passwordRef = useRef<TextInput>(null);
+
+  const loginMutation = useLogin();
+  const googleAuthMutation = useGoogleAuth();
+
+  const isSubmitting = loginMutation.isPending || googleAuthMutation.isPending;
+  const errorMessage =
+    (loginMutation.error as any)?.message ||
+    (googleAuthMutation.error as any)?.message ||
+    null;
+
+  const { control, handleSubmit } = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+    mode: 'onBlur',
+  });
+
+  const onSubmit = async (data: SignInFormValues) => {
+    try {
+      await loginMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
+      router.replace(AppRoute.home as any);
+    } catch {
+      // Error handled by TanStack mutation state
+    }
+  };
+
+  const handleSocialAuth = async (provider: 'google' | 'apple' | 'facebook') => {
+    if (provider === 'google') {
+      try {
+        await googleAuthMutation.mutateAsync({});
+        router.replace(AppRoute.home as any);
+      } catch {
+        // Handled by mutation error
+      }
+    }
+  };
+
+  return (
+    <Screen
+      scroll
+      keyboard
+      safeArea={['top', 'bottom']}
+      backgroundColor="#FAFAFA"
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: 'space-between',
+        paddingHorizontal: 22,
+        paddingTop: 8,
+        paddingBottom: 20,
+      }}
+    >
+      {/* Top Header */}
+      <AuthHeader showBack={true} />
+
+      {/* Main Centered Content Block */}
+      <View className="flex-1 justify-center my-auto py-4">
+        {/* Heading */}
+        <View className="mb-6">
+          <Text className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Welcome back
+          </Text>
+          <Text className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Good to see you again! Sign in to continue to Meeo.
+          </Text>
+        </View>
+
+        {/* Error Alert */}
+        {errorMessage && (
+          <View className="flex-row items-center gap-2.5 p-3 mb-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50">
+            <AlertCircle size={15} color="#EF4444" />
+            <Text className="text-xs text-red-600 dark:text-red-400 font-medium flex-1">
+              {errorMessage}
+            </Text>
+          </View>
+        )}
+
+        {/* Form Inputs */}
+        <View className="gap-3">
+          <ControlledInput
+            control={control}
+            name="email"
+            placeholder="youremail@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            blurOnSubmit={false}
+            leftIcon={<Mail size={17} color="#94A3B8" />}
+            isClearable
+          />
+
+          <ControlledInput
+            inputRef={passwordRef}
+            control={control}
+            name="password"
+            placeholder="Password"
+            isPassword
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="password"
+            textContentType="password"
+            returnKeyType="done"
+            onSubmitEditing={handleSubmit(onSubmit)}
+            leftIcon={<Lock size={17} color="#94A3B8" />}
+          />
+
+          {/* Forgot Password Link */}
+          <View className="items-end mt-0.5 mb-1">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => router.push(AppRoute.forgotPassword as any)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                Forgot password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Submit Button */}
+          <Button
+            fullWidth
+            size="lg"
+            variant="primary"
+            isLoading={isSubmitting}
+            onPress={handleSubmit(onSubmit)}
+            className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
+          >
+            <Text className="text-sm font-bold text-white dark:text-slate-950">
+              Sign In
+            </Text>
+          </Button>
+        </View>
+
+        {/* Divider */}
+        <AuthDivider text="or continue with" />
+
+        {/* Social Buttons */}
+        <SocialAuthButtons
+          disabled={isSubmitting}
+          onGooglePress={() => handleSocialAuth('google')}
+          onApplePress={() => handleSocialAuth('apple')}
+          onFacebookPress={() => handleSocialAuth('facebook')}
+        />
+      </View>
+
+      {/* Footer Switcher at the bottom */}
+      <View className="flex-row items-center justify-center gap-1 pt-2 pb-1">
+        <Text className="text-xs text-slate-500 dark:text-slate-400">
+          {"Don't have an account?"}
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push(AppRoute.signUp as any)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text className="text-xs font-bold text-slate-900 dark:text-white">
+            Sign Up
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </Screen>
+  );
+}
