@@ -21,6 +21,8 @@ configureReanimatedLogger({
 
 function RootLayoutContent() {
   const { isDark } = useTheme();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isHydrated = useAuthStore((s) => s.isHydrated);
 
   useEffect(() => {
     // Restore persistent session on app start
@@ -31,6 +33,11 @@ function RootLayoutContent() {
       RNStatusBar.setBackgroundColor('transparent');
     }
   }, []);
+
+  // Prevent evaluating Stack.Protected guards before auth session is hydrated
+  if (!isHydrated) {
+    return null;
+  }
 
   return (
     <>
@@ -43,8 +50,14 @@ function RootLayoutContent() {
           },
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
+        <Stack.Protected guard={isAuthenticated}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name='(protected)' />
+        </Stack.Protected>
+        <Stack.Protected guard={!isAuthenticated}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
       </Stack>
     </>
   );
@@ -53,7 +66,7 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+      <KeyboardProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
             <RootLayoutContent />

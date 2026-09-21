@@ -16,3 +16,4 @@ export * from './Skeleton';
 export * from './EmptyState';
 export * from './ErrorState';
 export * from './Header';
+export * from './Switch';

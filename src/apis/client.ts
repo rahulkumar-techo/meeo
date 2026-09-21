@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_CONFIG, getBaseUrl } from './config';
+import { API_CONFIG, BASE_URL, getBaseUrl } from './config';
 import { attachInterceptors, SetupApiClientOptions, setLoggingOut, getLoggingOut } from './interceptors';
 import { normalizeApiError, isNetworkError, ApiError } from './errors';
 import { secureStorage } from '@/lib/secureStorage';
@@ -31,6 +31,7 @@ export function setupApiClient(options?: SetupApiClientOptions) {
 setupApiClient();
 
 export {
+  BASE_URL,
   getBaseUrl,
   API_CONFIG,
   setLoggingOut,

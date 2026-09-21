@@ -14,7 +14,7 @@ export interface PriceBlockProps extends ViewProps {
 export function PriceBlock({
   price,
   originalPrice,
-  currency = '$',
+  currency = '₹',
   size = 'md',
   showDiscountBadge = true,
   className = '',
@@ -37,13 +37,13 @@ export function PriceBlock({
     lg: 'text-body line-through',
   }[size];
 
-  const formattedPrice = price.toLocaleString('en-US', {
+  const formattedPrice = price.toLocaleString('en-IN', {
     minimumFractionDigits: price % 1 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   });
 
   const formattedOriginalPrice = originalPrice
-    ? originalPrice.toLocaleString('en-US', {
+    ? originalPrice.toLocaleString('en-IN', {
         minimumFractionDigits: originalPrice % 1 === 0 ? 0 : 2,
         maximumFractionDigits: 2,
       })

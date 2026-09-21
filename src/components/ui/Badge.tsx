@@ -64,12 +64,12 @@ export function Badge({
       {...props}
     >
       {icon && <View>{icon}</View>}
-      {typeof children === 'string' ? (
+      {React.isValidElement(children) && !Array.isArray(children) ? (
+        children
+      ) : (
         <Text className={`${textClasses} ${variantTextClasses} tracking-tight`}>
           {children}
         </Text>
-      ) : (
-        children
       )}
     </View>
   );
