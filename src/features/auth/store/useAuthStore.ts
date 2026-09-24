@@ -180,8 +180,9 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
         set({ user: mappedUser, isAuthenticated: true });
       } catch (err) {
         if (!isNetworkFailure(err)) {
+          const status = (err as any)?.status || (err as any)?.response?.status;
           // If token is invalid (401), reset state
-          if ((err as any)?.status === 401) {
+          if (status === 401) {
             await secureStorage.clearTokens();
             authSession.clearSession();
             set({ ...initialState, isHydrated: true });

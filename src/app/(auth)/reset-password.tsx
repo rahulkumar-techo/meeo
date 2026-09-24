@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, AlertCircle, Sparkles } from 'lucide-react-native';
@@ -13,11 +13,14 @@ import {
   ControlledInput,
   resetPasswordSchema,
   ResetPasswordFormValues,
+  useAuthStore,
   useResetPassword,
 } from '@/features/auth';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ email?: string; otp?: string }>();
+  const pendingEmail = useAuthStore((state) => state.pendingEmail);
   const confirmPasswordRef = useRef<TextInput>(null);
 
   const resetPasswordMutation = useResetPassword();
@@ -35,8 +38,13 @@ export default function ResetPasswordScreen() {
   });
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
+    const email = params.email || pendingEmail || '';
+    const otp = params.otp || '';
+
     try {
       await resetPasswordMutation.mutateAsync({
+        email,
+        otp,
         password: data.password,
       });
       setIsSuccess(true);

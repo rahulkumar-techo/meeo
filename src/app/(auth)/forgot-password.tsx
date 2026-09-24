@@ -91,7 +91,15 @@ export default function ForgotPasswordScreen() {
               fullWidth
               size="lg"
               variant="primary"
-              onPress={() => router.push(AppRoute.verifyOtp as any)}
+              onPress={() =>
+                router.push({
+                  pathname: AppRoute.verifyOtp as any,
+                  params: {
+                    flow: 'reset',
+                    email: submittedEmail.trim().toLowerCase(),
+                  },
+                })
+              }
               className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
             >
               <Text className="text-sm font-bold text-white dark:text-slate-950">

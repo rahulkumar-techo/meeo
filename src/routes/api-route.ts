@@ -91,6 +91,8 @@ export const ApiRoute = {
   },
 
   PAYMENTS: {
+    INITIALIZE: "/payments/initialize",
+    GET_PAYMENT: (paymentId: string) => `/payments/${paymentId}`,
     PAYMENT_WEBHOOK: (provider: string) => `/payments/webhook/${provider}`, // Ingest Provider Webhook Event
     PAYMENT_INITIALIZE: "/payments/initialize", // Initializes a payment intent/session
     PAYMENT_RETRY: "/payments/retry", // Creates a new incremented payment attempt
@@ -140,5 +142,11 @@ export const ApiRoute = {
     NOTIFICATION_PREFRENCES: "/notifications/preferences",
     UPDATE_NOTIFICATION_PREFERENCES: "/notifications/preferences", // PATCH/PUT - update preferences
     UPDATE_NOTIFICATION_PREFRENCES: "/notifications/preferences",
+  },
+
+  ADDRESS: {
+    ADDRESSES: "/user/addresses", // POST / GET
+    UPDATE_ADDRESS: (addressId: string) => `/user/addresses/${addressId}`, // PATCH
+    DELETE_ADDRESS: (addressId: string) => `/user/addresses/${addressId}`, // DELETE
   },
 } as const;

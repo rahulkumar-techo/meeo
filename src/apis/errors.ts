@@ -91,7 +91,7 @@ export function normalizeApiError(error: AxiosError<{ message?: string; error?: 
     case 401:
       return {
         status,
-        message: serverMessage || 'Invalid email or password. Please try again.',
+        message: serverMessage || 'Unauthorized. Please sign in to continue.',
         data,
       };
 

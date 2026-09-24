@@ -12,6 +12,22 @@ export interface SetupApiClientOptions {
 }
 
 let isLoggingOut = false;
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 export function setLoggingOut(val: boolean) {
   isLoggingOut = val;
@@ -104,7 +120,21 @@ export function attachInterceptors(
         !isLoggingOut &&
         !isAuthEndpoint
       ) {
+        if (isRefreshing) {
+          return new Promise<string>((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+              }
+              return apiInstance(originalRequest);
+            })
+            .catch((err) => Promise.reject(normalizeApiError(err)));
+        }
+
         originalRequest._retry = true;
+        isRefreshing = true;
 
         try {
           const stored = options?.getTokens
@@ -122,11 +152,12 @@ export function attachInterceptors(
             { headers: { 'Content-Type': 'application/json' } }
           );
 
+          const resData = (data as any)?.data || data;
           const newToken =
-            data.token ||
-            (data as any).accessToken ||
-            data?.data?.token ||
-            data?.data?.accessToken;
+            resData?.accessToken ||
+            data?.token ||
+            (data as any)?.accessToken ||
+            resData?.token;
 
           if (!newToken) {
             throw new Error('Session expired. Please sign in again.');
@@ -136,8 +167,8 @@ export function attachInterceptors(
           const newTokens: AuthTokens = {
             accessToken: newToken,
             refreshToken:
-              (data as any).refreshToken ||
-              data?.data?.refreshToken ||
+              resData?.refreshToken ||
+              (data as any)?.refreshToken ||
               stored.refreshToken,
           };
 
@@ -147,12 +178,15 @@ export function attachInterceptors(
             await secureStorage.setTokens(newTokens);
           }
 
+          processQueue(null, newToken);
+
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
           }
 
           return apiInstance(originalRequest);
-        } catch {
+        } catch (refreshErr) {
+          processQueue(refreshErr, null);
           authSession.clearSession();
           await secureStorage.clearTokens();
 
@@ -161,6 +195,8 @@ export function attachInterceptors(
           }
 
           return Promise.reject(normalizeApiError(error));
+        } finally {
+          isRefreshing = false;
         }
       }
 

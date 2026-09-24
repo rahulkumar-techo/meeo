@@ -50,19 +50,20 @@ export default function SignUpScreen() {
 
   const onSubmit = async (data: SignUpFormValues) => {
     try {
-      const response = await registerMutation.mutateAsync({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
+      const normalizedEmail = data.email.trim().toLowerCase();
+      await registerMutation.mutateAsync({
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: normalizedEmail,
         password: data.password,
       });
 
-      const resData = (response as any)?.data || response;
-      if (response?.token || resData?.token || resData?.accessToken) {
-        router.replace(AppRoute.home as any);
-      } else {
-        router.push(AppRoute.verifyOtp as any);
-      }
+      router.push({
+        pathname: AppRoute.verifyOtp as any,
+        params: {
+          email: normalizedEmail,
+        },
+      });
     } catch {
       // Handled by TanStack Query state
     }

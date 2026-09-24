@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, AlertCircle, Check } from 'lucide-react-native';
@@ -15,24 +15,36 @@ import {
   VerifyOtpFormValues,
   useAuthStore,
   useVerifyOtp,
+  useResendOtp,
   useForgotPassword,
 } from '@/features/auth';
 
 export default function VerifyOtpScreen() {
   const router = useRouter();
-  const pendingEmail = useAuthStore((state) => state.pendingEmail);
+  const params = useLocalSearchParams<{ flow?: string; email?: string }>();
+  const isResetFlow = params.flow === 'reset';
+
+  const storePendingEmail = useAuthStore((state) => state.pendingEmail);
+  const pendingEmail = params.email || storePendingEmail;
 
   const verifyOtpMutation = useVerifyOtp();
-  const resendMutation = useForgotPassword();
+  const resendVerificationOtpMutation = useResendOtp();
+  const resendPasswordResetOtpMutation = useForgotPassword();
 
-  const isSubmitting = verifyOtpMutation.isPending || resendMutation.isPending;
+  const isSubmitting =
+    verifyOtpMutation.isPending ||
+    resendVerificationOtpMutation.isPending ||
+    resendPasswordResetOtpMutation.isPending;
+
   const errorMessage =
     (verifyOtpMutation.error as any)?.message ||
-    (resendMutation.error as any)?.message ||
+    (resendVerificationOtpMutation.error as any)?.message ||
+    (resendPasswordResetOtpMutation.error as any)?.message ||
     null;
 
   const [resendTimer, setResendTimer] = useState(45);
   const [isVerified, setIsVerified] = useState(false);
+  const [verifiedOtp, setVerifiedOtp] = useState('');
 
   const { control, handleSubmit } = useForm<VerifyOtpFormValues>({
     resolver: zodResolver(verifyOtpSchema),
@@ -55,7 +67,11 @@ export default function VerifyOtpScreen() {
   const handleResend = async () => {
     if (resendTimer > 0 || !pendingEmail) return;
     try {
-      await resendMutation.mutateAsync({ email: pendingEmail });
+      if (isResetFlow) {
+        await resendPasswordResetOtpMutation.mutateAsync({ email: pendingEmail });
+      } else {
+        await resendVerificationOtpMutation.mutateAsync({ email: pendingEmail });
+      }
       setResendTimer(45);
     } catch {
       // Handled by mutation error
@@ -63,18 +79,35 @@ export default function VerifyOtpScreen() {
   };
 
   const onSubmit = async (data: VerifyOtpFormValues) => {
+    if (!pendingEmail) {
+      return;
+    }
+
+    if (isResetFlow) {
+      // Password reset OTP is validated atomically at POST /auth/reset-password
+      router.push({
+        pathname: AppRoute.resetPassword as any,
+        params: {
+          email: pendingEmail,
+          otp: data.code.trim(),
+        },
+      });
+      return;
+    }
+
     try {
       await verifyOtpMutation.mutateAsync({
-        email: pendingEmail || undefined,
-        otp: data.code,
+        email: pendingEmail,
+        otp: data.code.trim(),
       });
+      setVerifiedOtp(data.code.trim());
       setIsVerified(true);
     } catch {
       // Handled by mutation error
     }
   };
 
-  // Screen 10 in design: Verified Success state
+  // Screen: Verified Success state
   if (isVerified) {
     return (
       <Screen
@@ -96,10 +129,12 @@ export default function VerifyOtpScreen() {
           </View>
 
           <Text className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white text-center">
-            Code Verified!
+            {isResetFlow ? 'Code Verified!' : 'Account Verified!'}
           </Text>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center px-6 leading-5">
-            Your identity has been confirmed. You can now set up your new account password.
+            {isResetFlow
+              ? 'Your identity has been confirmed. You can now set up your new account password.'
+              : 'Your email has been verified successfully. You can now sign in to your account.'}
           </Text>
 
           <View className="w-full mt-8">
@@ -107,11 +142,23 @@ export default function VerifyOtpScreen() {
               fullWidth
               size="lg"
               variant="primary"
-              onPress={() => router.push(AppRoute.resetPassword as any)}
+              onPress={() => {
+                if (isResetFlow) {
+                  router.push({
+                    pathname: AppRoute.resetPassword as any,
+                    params: {
+                      email: pendingEmail || '',
+                      otp: verifiedOtp,
+                    },
+                  });
+                } else {
+                  router.replace(AppRoute.signIn as any);
+                }
+              }}
               className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
             >
               <Text className="text-sm font-bold text-white dark:text-slate-950">
-                Create New Password
+                {isResetFlow ? 'Create New Password' : 'Sign In to Meeo'}
               </Text>
             </Button>
           </View>

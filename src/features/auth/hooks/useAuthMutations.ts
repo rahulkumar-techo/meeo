@@ -4,6 +4,7 @@ import {
   LoginRequest,
   RegisterRequest,
   VerifyOtpRequest,
+  ResendOtpRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   GoogleAuthRequest,
@@ -19,20 +20,38 @@ export const AUTH_QUERY_KEYS = {
 /**
  * Extracts tokens and user profile from an AuthResponse
  */
-function extractAuthData(response: AuthResponse): { tokens: AuthTokens; user: any } {
+function extractAuthData(response: any): { tokens: AuthTokens; user: any } {
+  if (!response) {
+    return { tokens: { accessToken: '' }, user: mapApiUserToStoreUser(null) };
+  }
+
   const resData = response.data || response;
   const accessToken =
     response.token ||
+    response.accessToken ||
+    response.jwt ||
     resData?.token ||
     resData?.accessToken ||
     resData?.jwt ||
+    resData?.tokens?.accessToken ||
+    resData?.tokens?.token ||
+    response?.tokens?.accessToken ||
     '';
 
   const refreshToken =
     response.refreshToken ||
-    resData?.refreshToken;
+    resData?.refreshToken ||
+    resData?.tokens?.refreshToken ||
+    response?.tokens?.refreshToken;
 
-  const user = mapApiUserToStoreUser(resData?.user || resData?.profile || resData);
+  const rawUser =
+    resData?.user ||
+    resData?.profile ||
+    response?.user ||
+    response?.profile ||
+    (resData?.id ? resData : null);
+
+  const user = mapApiUserToStoreUser(rawUser);
 
   return {
     tokens: {
@@ -51,7 +70,11 @@ export function useLogin() {
   const loginStore = useAuthStore((state) => state.login);
 
   return useMutation({
-    mutationFn: (payload: LoginRequest) => AuthService.login(payload),
+    mutationFn: (payload: LoginRequest) =>
+      AuthService.login({
+        ...payload,
+        email: payload.email.trim().toLowerCase(),
+      }),
     onSuccess: async (response) => {
       const { tokens, user } = extractAuthData(response);
       if (tokens.accessToken) {
@@ -67,20 +90,18 @@ export function useLogin() {
  * Hook for User Registration via TanStack Query Mutation
  */
 export function useRegister() {
-  const queryClient = useQueryClient();
-  const loginStore = useAuthStore((state) => state.login);
   const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
 
   return useMutation({
-    mutationFn: (payload: RegisterRequest) => AuthService.register(payload),
-    onSuccess: async (response, variables) => {
-      setPendingEmail(variables.email);
-      const { tokens, user } = extractAuthData(response);
-      if (tokens.accessToken) {
-        await loginStore(tokens, user);
-        queryClient.setQueryData(AUTH_QUERY_KEYS.me, user);
-        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.me });
-      }
+    mutationFn: (payload: RegisterRequest) =>
+      AuthService.register({
+        ...payload,
+        email: payload.email.trim().toLowerCase(),
+        firstName: payload.firstName.trim(),
+        lastName: payload.lastName.trim(),
+      }),
+    onSuccess: (_, variables) => {
+      setPendingEmail(variables.email.trim().toLowerCase());
     },
   });
 }
@@ -92,27 +113,36 @@ export function useForgotPassword() {
   const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
 
   return useMutation({
-    mutationFn: (payload: ForgotPasswordRequest) => AuthService.forgotPassword(payload),
+    mutationFn: (payload: ForgotPasswordRequest) =>
+      AuthService.forgotPassword({
+        ...payload,
+        email: payload.email.trim().toLowerCase(),
+      }),
     onSuccess: (_, variables) => {
-      setPendingEmail(variables.email);
+      setPendingEmail(variables.email.trim().toLowerCase());
     },
   });
 }
 
 export function useVerifyOtp() {
-  const queryClient = useQueryClient();
-  const loginStore = useAuthStore((state) => state.login);
-
   return useMutation({
-    mutationFn: (payload: VerifyOtpRequest) => AuthService.verifyOtp(payload),
-    onSuccess: async (response) => {
-      const { tokens, user } = extractAuthData(response);
-      if (tokens.accessToken) {
-        await loginStore(tokens, user);
-        queryClient.setQueryData(AUTH_QUERY_KEYS.me, user);
-        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.me });
-      }
-    },
+    mutationFn: (payload: VerifyOtpRequest) =>
+      AuthService.verifyOtp({
+        email: payload.email.trim().toLowerCase(),
+        otp: String(payload.otp).trim(),
+      }),
+  });
+}
+
+/**
+ * Hook for Resending Verification OTP
+ */
+export function useResendOtp() {
+  return useMutation({
+    mutationFn: (payload: ResendOtpRequest) =>
+      AuthService.resendOtp({
+        email: payload.email.trim().toLowerCase(),
+      }),
   });
 }
 
@@ -123,7 +153,12 @@ export function useResetPassword() {
   const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
 
   return useMutation({
-    mutationFn: (payload: ResetPasswordRequest) => AuthService.resetPassword(payload),
+    mutationFn: (payload: ResetPasswordRequest) =>
+      AuthService.resetPassword({
+        email: payload.email.trim().toLowerCase(),
+        otp: String(payload.otp).trim(),
+        password: payload.password,
+      }),
     onSuccess: () => {
       setPendingEmail(null);
     },

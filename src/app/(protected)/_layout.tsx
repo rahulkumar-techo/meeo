@@ -15,6 +15,8 @@ export default function ProtectedLayout() {
       }}
     >
       <Stack.Screen name="product/[productId]" />
+      <Stack.Screen name="checkout" />
+      <Stack.Screen name="address" />
     </Stack>
   );
 }

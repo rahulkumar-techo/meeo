@@ -28,9 +28,12 @@ export interface RegisterResponseData {
 }
 
 export interface VerifyOtpRequest {
-    email?: string;
-    code?: string;
-    otp?: string;
+    email: string;
+    otp: string;
+}
+
+export interface VerifyOtpResponseData {
+    verified: boolean;
 }
 
 export interface ResendOtpRequest {
@@ -42,9 +45,8 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-    email?: string;
-    code?: string;
-    otp?: string;
+    email: string;
+    otp: string;
     password: string;
 }
 
@@ -105,17 +107,12 @@ export const AuthService = {
     verifyOtp: async <T = any>(
         payload: VerifyOtpRequest,
     ): Promise<AuthResponse<T>> => {
-        const otpValue = payload.otp || payload.code || '';
-        const body: Record<string, any> = {
-            otp: otpValue,
-            code: otpValue,
-        };
-        if (payload.email) {
-            body.email = payload.email;
-        }
         const response = await apiClient.post<AuthResponse<T>>(
             ApiRoute.AUTH.OTP_VERIFICATION,
-            body,
+            {
+                email: payload.email,
+                otp: payload.otp,
+            },
         );
         return response.data;
     },
@@ -152,18 +149,13 @@ export const AuthService = {
     resetPassword: async <T = any>(
         payload: ResetPasswordRequest,
     ): Promise<AuthResponse<T>> => {
-        const otpValue = payload.otp || payload.code;
-        const body: Record<string, any> = {
-            password: payload.password,
-        };
-        if (payload.email) body.email = payload.email;
-        if (otpValue) {
-            body.otp = otpValue;
-            body.code = otpValue;
-        }
         const response = await apiClient.post<AuthResponse<T>>(
             ApiRoute.AUTH.RESET_PASSWORD,
-            body,
+            {
+                email: payload.email,
+                otp: payload.otp,
+                password: payload.password,
+            },
         );
         return response.data;
     },
@@ -231,8 +223,16 @@ export const AuthService = {
      * Fetch currently authenticated user profile.
      */
     getMe: async <T = any>(): Promise<AuthResponse<T>> => {
-        const response = await apiClient.get<AuthResponse<T>>(ApiRoute.AUTH.ME);
-        return response.data;
+        try {
+            const response = await apiClient.get<AuthResponse<T>>(ApiRoute.AUTH.ME);
+            return response.data;
+        } catch (err: any) {
+            if (err?.status === 404 || err?.response?.status === 404) {
+                const response = await apiClient.get<AuthResponse<T>>(ApiRoute.USER.PROFILE);
+                return response.data;
+            }
+            throw err;
+        }
     },
 
     /**

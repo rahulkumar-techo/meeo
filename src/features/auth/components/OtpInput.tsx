@@ -28,16 +28,21 @@ export function OtpInput({
 
   const handleChangeText = (text: string, index: number) => {
     const cleaned = text.replace(/[^0-9]/g, "");
+
+    // Handling multi-character paste or autofill
     if (cleaned.length > 1) {
-      onChange(cleaned.slice(0, length));
-      const nextFocusIndex = Math.min(cleaned.length, length - 1);
+      const pasted = cleaned.slice(0, length);
+      onChange(pasted);
+      const nextFocusIndex = Math.min(pasted.length, length - 1);
       inputRefs.current[nextFocusIndex]?.focus();
       return;
     }
 
-    const newDigits = [...digits];
+    const currentDigits = Array.from({ length }, (_, i) => value[i] || "");
+    const newDigits = [...currentDigits];
     newDigits[index] = cleaned;
-    onChange(newDigits.join("").trimEnd());
+    const combined = newDigits.join("");
+    onChange(combined);
 
     if (cleaned && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
@@ -49,7 +54,8 @@ export function OtpInput({
     index: number,
   ) => {
     if (e.nativeEvent.key === "Backspace") {
-      if (!digits[index] && index > 0) {
+      const currentVal = value[index] || "";
+      if (!currentVal && index > 0) {
         inputRefs.current[index - 1]?.focus();
       }
     }
@@ -58,18 +64,18 @@ export function OtpInput({
   return (
     <View className="flex-row justify-between items-center w-full gap-2.5">
       {Array.from({ length }).map((_, index) => {
-        const isFilled = Boolean(digits[index]);
+        const isFilled = Boolean(value[index]);
         return (
           <TextInput
             key={index}
             ref={(ref) => {
               inputRefs.current[index] = ref;
             }}
-            value={digits[index]}
+            value={value[index] || ""}
             onChangeText={(text) => handleChangeText(text, index)}
             onKeyPress={(e) => handleKeyPress(e, index)}
             keyboardType="number-pad"
-            maxLength={index === 0 ? length : 1}
+            maxLength={length}
             selectTextOnFocus
             textAlign="center"
             placeholderTextColor={isDark ? "#475569" : "#CBD5E1"}

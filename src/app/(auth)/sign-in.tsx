@@ -17,6 +17,7 @@ import {
   SignInFormValues,
   useLogin,
   useGoogleAuth,
+  useAuthStore,
 } from '@/features/auth';
 
 export default function SignInScreen() {
@@ -42,6 +43,8 @@ export default function SignInScreen() {
     mode: 'onBlur',
   });
 
+  const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
+
   const onSubmit = async (data: SignInFormValues) => {
     try {
       await loginMutation.mutateAsync({
@@ -50,8 +53,17 @@ export default function SignInScreen() {
         rememberMe: data.rememberMe,
       });
       router.replace(AppRoute.home as any);
-    } catch {
-      // Error handled by TanStack mutation state
+    } catch (err: any) {
+      const status = err?.status || err?.response?.status;
+      const msg = (err?.message || '').toLowerCase();
+      if (status === 403 && (msg.includes('verify') || msg.includes('email'))) {
+        const normalizedEmail = data.email.trim().toLowerCase();
+        setPendingEmail(normalizedEmail);
+        router.push({
+          pathname: AppRoute.verifyOtp as any,
+          params: { email: normalizedEmail },
+        });
+      }
     }
   };
 
