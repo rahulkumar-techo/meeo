@@ -297,7 +297,7 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: Math.max(insets.top, 12) + 56,
+          // paddingTop: Math.max(insets.top, 12) + 56,
           paddingBottom: insets.bottom + 130,
         }}
       >

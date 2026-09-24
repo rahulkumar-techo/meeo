@@ -75,7 +75,12 @@ export function ProductImageGallery({
   return (
     <View style={styles.container}>
       {/* Main Carousel */}
-      <View style={styles.carouselWrapper}>
+      <View
+        style={[
+          styles.carouselWrapper,
+          { backgroundColor: isDark ? theme.surface : '#FFFFFF' },
+        ]}
+      >
         <ScrollView
           ref={scrollViewRef}
           horizontal
@@ -183,14 +188,14 @@ const styles = StyleSheet.create({
   },
   carouselWrapper: {
     width: SCREEN_WIDTH,
-    height: 350,
+    height: 450,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   imageSlide: {
     width: SCREEN_WIDTH,
-    height: 350,
+    height: 450,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,

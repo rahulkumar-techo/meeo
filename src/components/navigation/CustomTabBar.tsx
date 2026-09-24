@@ -10,12 +10,13 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
+  Easing,
+  withSpring,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+
 import {
   Home,
   SquarePlay,
@@ -84,6 +85,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
     (Array.isArray(cartData?.data?.items) ? cartData.data.items.length : 0);
 
   const layoutsRef = useRef<{ [key: string]: { x: number; width: number } }>({});
+  const activeTargetRef = useRef<string | null>(null);
   const indicatorX = useSharedValue(0);
   const indicatorWidth = useSharedValue(0);
   const indicatorOpacity = useSharedValue(0);
@@ -93,6 +95,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
   const animateToTab = useCallback(
     (tabName: string, immediate = false) => {
       if (tabName === 'account') {
+        activeTargetRef.current = 'account';
         indicatorOpacity.value = withTiming(0, { duration: 100 });
         return;
       }
@@ -100,21 +103,25 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
       const layout = layoutsRef.current[tabName];
       if (!layout || layout.width === 0) return;
 
+      // Prevent duplicate triggers if already animating towards target
+      if (!immediate && activeTargetRef.current === tabName && hasInitialized.current) {
+        return;
+      }
+      activeTargetRef.current = tabName;
+
       if (immediate || !hasInitialized.current) {
         indicatorX.value = layout.x;
         indicatorWidth.value = layout.width;
-        indicatorOpacity.value = withTiming(1, { duration: 100 });
+        indicatorOpacity.value = withTiming(1, { duration: 80 });
         hasInitialized.current = true;
       } else {
-        indicatorX.value = withSpring(layout.x, {
-          damping: 24,
-          stiffness: 300,
-          mass: 0.45,
+        indicatorX.value = withTiming(layout.x, {
+          duration: 180,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         });
-        indicatorWidth.value = withSpring(layout.width, {
-          damping: 24,
-          stiffness: 300,
-          mass: 0.45,
+        indicatorWidth.value = withTiming(layout.width, {
+          duration: 180,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
         });
         indicatorOpacity.value = withTiming(1, { duration: 80 });
       }
@@ -127,8 +134,8 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
       const { x, width } = e.nativeEvent.layout;
       layoutsRef.current[tabName] = { x, width };
 
-      if (tabName === currentRouteName) {
-        animateToTab(tabName, !hasInitialized.current);
+      if (tabName === currentRouteName && !hasInitialized.current) {
+        animateToTab(tabName, true);
       }
     },
     [animateToTab, currentRouteName]
@@ -154,7 +161,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
   const bottomPosition = bottomInset > 0 ? bottomInset + 4 : 14;
 
   const handlePressAccount = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+
     animateToTab('account');
 
     const event = navigation.emit({
@@ -224,7 +231,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
               tab.name === 'cart' ? cartBadgeCount : tab.badgeCount;
 
             const onPress = () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+             
               animateToTab(tab.name);
 
               const event = navigation.emit({
