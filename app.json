@@ -18,7 +18,15 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": true,
-      "package": "com.mrrhl02.meeo"
+      "package": "com.mrrhl02.meeo",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": {
+            "scheme": "upi"
+          }
+        }
+      ]
     },
     "web": {
       "output": "static",

@@ -92,11 +92,14 @@ export const ApiRoute = {
 
   PAYMENTS: {
     INITIALIZE: "/payments/initialize",
+    VERIFY: "/payments/verify",
+    FAIL: "/payments/fail",
+    RETRY: "/payments/retry",
     GET_PAYMENT: (paymentId: string) => `/payments/${paymentId}`,
-    PAYMENT_WEBHOOK: (provider: string) => `/payments/webhook/${provider}`, // Ingest Provider Webhook Event
-    PAYMENT_INITIALIZE: "/payments/initialize", // Initializes a payment intent/session
-    PAYMENT_RETRY: "/payments/retry", // Creates a new incremented payment attempt
-    PAYMENT_DETAILS: (paymentId: string) => `/payments/${paymentId}`, // GET - payment details
+    PAYMENT_WEBHOOK: (provider: string) => `/payments/webhook/${provider}`,
+    PAYMENT_INITIALIZE: "/payments/initialize",
+    PAYMENT_RETRY: "/payments/retry",
+    PAYMENT_DETAILS: (paymentId: string) => `/payments/${paymentId}`,
   },
 
   COUPONS: {

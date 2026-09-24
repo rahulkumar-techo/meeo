@@ -19,9 +19,10 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { checkoutService } from '../services/checkout.service';
-import { paymentApi } from '../services/payment.service';
 import { useValidateCheckout } from '../hooks/checkout.hook';
-import { useGetCart } from '@/features/cart';
+import { useRazorpayPayment } from '../hooks/razorpay.hook';
+import { useGetCart, CART_QUERY_KEYS } from '@/features/cart';
+import { queryClient } from '@/apis/query-client';
 import type { UserAddress } from '@/features/address/validations/address.validation';
 import type { PaymentMethod } from '../types/checkout.types';
 
@@ -38,8 +39,12 @@ export function CheckoutPaymentStep({
   const { isDark } = useTheme();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const [processingStage, setProcessingStage] = useState<string>('');
+
+  const { initiatePayment, isProcessing: isRazorpayLoading } = useRazorpayPayment();
+
+  const isProcessing = isProcessingOrder || isRazorpayLoading;
 
   // Validate checkout pricing & summary from server
   const { data: validationData } = useValidateCheckout({
@@ -64,7 +69,7 @@ export function CheckoutPaymentStep({
       return;
     }
 
-    setIsProcessing(true);
+    setIsProcessingOrder(true);
     setProcessingStage('Creating order...');
 
     try {
@@ -82,38 +87,29 @@ export function CheckoutPaymentStep({
       }
 
       if (paymentMethod === 'UPI') {
-        // Step 2: Initialize Payment Gateway Session (Razorpay)
-        setProcessingStage('Initializing payment gateway...');
-        const paymentRes = await paymentApi.initializePayment({
+        // Step 2: Open Razorpay modal via useRazorpayPayment hook
+        setProcessingStage('Opening Razorpay...');
+        const paymentRes = await initiatePayment({
           orderId: order.id,
-          provider: 'RAZORPAY',
-          currency: 'INR',
-        });
-
-        const paymentData = paymentRes?.data;
-        if (!paymentData) {
-          throw new Error('Failed to initialize payment gateway.');
-        }
-
-        // Razorpay SDK / Webview integration options
-        const razorpayOptions = {
-          key: paymentData.clientSecret,
-          order_id: paymentData.providerPaymentId,
-          amount: paymentData.amount, // in paise
-          currency: paymentData.currency || 'INR',
-          name: 'Meeo Store',
-          description: `Order #${order.orderNumber}`,
+          orderNumber: order.orderNumber,
           prefill: {
             name: selectedAddress.recipientName,
             contact: selectedAddress.phone || '',
           },
-          theme: { color: '#2D2621' },
-        };
+          onSuccess: async () => {
+            onOrderSuccess(order.id, order.orderNumber);
+          },
+        });
 
-        // Complete order & show success flow
-        onOrderSuccess(order.id, order.orderNumber);
+        if (!paymentRes) {
+          // Payment was cancelled or failed (alert handled by hook)
+          return;
+        }
       } else {
-        // Cash on Delivery: Direct completion
+        // Cash on Delivery: Direct completion & client-side cart reset
+        queryClient.setQueryData(CART_QUERY_KEYS.details(), null);
+        queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
         onOrderSuccess(order.id, order.orderNumber);
       }
     } catch (err: any) {
@@ -122,7 +118,7 @@ export function CheckoutPaymentStep({
         err?.response?.data?.message || err?.message || 'Failed to complete payment. Please try again.'
       );
     } finally {
-      setIsProcessing(false);
+      setIsProcessingOrder(false);
       setProcessingStage('');
     }
   };
