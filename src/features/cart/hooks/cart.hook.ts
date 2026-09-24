@@ -5,6 +5,7 @@ import {
   UseQueryOptions,
   UseMutationOptions,
 } from "@tanstack/react-query";
+
 import { CartApiService } from "../services/cart.service";
 import type {
   Cart,
@@ -32,10 +33,12 @@ type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
 export const useGetCart = <TData = CartApiResponse<Cart>>(
   options?: QueryOptionsWithoutKeyAndFn<TData>
 ) => {
+
+
   return useQuery({
     queryKey: CART_QUERY_KEYS.details(),
     queryFn: () => CartApiService.getCart() as Promise<TData>,
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 1000 * 60, // 1 minute
     ...options,
   });
 };
@@ -52,7 +55,8 @@ export const useAddToCart = (
     mutationFn: (payload: AddToCartPayload) => CartApiService.addToCart(payload),
     onSuccess: (...args: any[]) => {
       const serverResponse = args[0];
-      if (serverResponse?.data) {
+      // Only overwrite cache if server response contains the full cart items array
+      if (serverResponse?.data?.items && Array.isArray(serverResponse.data.items)) {
         queryClient.setQueryData(CART_QUERY_KEYS.details(), serverResponse);
       }
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });

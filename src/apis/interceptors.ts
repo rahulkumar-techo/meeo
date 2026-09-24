@@ -28,11 +28,14 @@ export function attachInterceptors(
   apiInstance: AxiosInstance,
   options?: SetupApiClientOptions
 ) {
-  // Request Interceptor: Synchronously inject auth token and guest sessionId
+  // ===========================================================================
+  // 1. Request Interceptor: Inject Bearer Token
+  // ===========================================================================
   apiInstance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-    let token = authSession.getAccessToken();
+    config.headers = config.headers || {};
 
-    // If not in memory yet, pull from secure storage
+    // 1. Resolve Access Token (Memory -> Secure Storage)
+    let token = authSession.getAccessToken();
     if (!token) {
       const stored = options?.getTokens
         ? await options.getTokens()
@@ -44,49 +47,22 @@ export function attachInterceptors(
       }
     }
 
-    if (token && config.headers) {
+    // 2. Attach Authorization Header if logged in
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     config.withCredentials = true;
 
-    // Inject guest session ID if present
-    let sessionId = authSession.getSessionId();
-    if (!sessionId) {
-      sessionId = await secureStorage.getSessionId();
-      if (sessionId) {
-        authSession.setSessionId(sessionId);
-      }
-    }
-
-    if (sessionId && config.headers) {
-      config.headers['x-session-id'] = sessionId;
-      config.headers['X-Session-Id'] = sessionId;
-      config.headers['Session-Id'] = sessionId;
-      config.headers['session-id'] = sessionId;
-      config.headers['sessionId'] = sessionId;
-      config.headers['Cookie'] = `sessionId=${sessionId}; session=${sessionId}`;
-    }
-
     return config;
   });
 
-  // Response Interceptor: HTML Response Guard, Session Capture, Silent 401 Refresh & Graceful Error Normalization
+  // ===========================================================================
+  // 2. Response Interceptor: HTML Guard & Silent 401 Refresh
+  // ===========================================================================
   apiInstance.interceptors.response.use(
     (res) => {
-      // Automatically capture and persist guest sessionId from response payload or headers
-      const resSessionId =
-        res.data?.data?.sessionId ||
-        res.data?.sessionId ||
-        res.headers?.['x-session-id'] ||
-        res.headers?.['session-id'];
-
-      if (resSessionId && typeof resSessionId === 'string') {
-        authSession.setSessionId(resSessionId);
-        secureStorage.setSessionId(resSessionId);
-      }
-
-      // Guard against accidental SPA HTML index fallback for missing/unrouted backend endpoints
+      // Guard against HTML index fallback
       if (
         typeof res.data === 'string' &&
         (res.data.trim().startsWith('<!doctype html') || res.data.trim().startsWith('<html'))
@@ -110,7 +86,6 @@ export function attachInterceptors(
         _retry?: boolean;
       };
 
-      // Determine if the failed request is an authentication entrypoint
       const requestUrl = originalRequest?.url || '';
       const isAuthEndpoint =
         requestUrl.includes('/auth/login') ||
@@ -121,7 +96,7 @@ export function attachInterceptors(
         requestUrl.includes('/auth/reset-password') ||
         requestUrl.includes('/auth/refresh');
 
-      // Silent 401 Refresh only for protected routes (not login/register)
+      // Silent 401 Refresh only for protected routes
       if (
         error.response?.status === 401 &&
         originalRequest &&

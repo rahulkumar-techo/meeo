@@ -4,7 +4,6 @@ import type { AuthTokens } from '@/types/auth.types';
 const ACCESS_TOKEN_KEY = 'user_access_token';
 const REFRESH_TOKEN_KEY = 'user_refresh_token';
 const USER_KEY = 'user_profile_data';
-const SESSION_ID_KEY = 'guest_session_id';
 
 export const secureStorage = {
   async getTokens(): Promise<AuthTokens | null> {
@@ -31,26 +30,6 @@ export const secureStorage = {
       }
     } catch (error) {
       console.error('Failed to save tokens in secureStorage:', error);
-    }
-  },
-
-  async getSessionId(): Promise<string | null> {
-    try {
-      return await SecureStore.getItemAsync(SESSION_ID_KEY);
-    } catch {
-      return null;
-    }
-  },
-
-  async setSessionId(sessionId: string | null): Promise<void> {
-    try {
-      if (sessionId) {
-        await SecureStore.setItemAsync(SESSION_ID_KEY, sessionId);
-      } else {
-        await SecureStore.deleteItemAsync(SESSION_ID_KEY);
-      }
-    } catch (error) {
-      console.error('Failed to save sessionId in secureStorage:', error);
     }
   },
 
@@ -81,7 +60,6 @@ export const secureStorage = {
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
       await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
       await SecureStore.deleteItemAsync(USER_KEY);
-      await SecureStore.deleteItemAsync(SESSION_ID_KEY);
     } catch (error) {
       console.error('Failed to clear tokens in secureStorage:', error);
     }

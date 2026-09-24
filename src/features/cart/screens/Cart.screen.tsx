@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { ShoppingBag, Trash2 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import {
@@ -43,6 +43,13 @@ export function CartScreen() {
   const { mutate: updateQuantity } = useUpdateCartItem();
   const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
   const { mutate: clearCart, isPending: isClearing } = useClearCart();
+
+  // Automatically refresh cart whenever screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   // Manual Pull-to-Refresh handler (Only shows spinner on manual gesture)
   const handleManualRefresh = useCallback(async () => {
