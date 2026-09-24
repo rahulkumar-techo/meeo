@@ -66,7 +66,7 @@ export default function VerifyOtpScreen() {
     try {
       await verifyOtpMutation.mutateAsync({
         email: pendingEmail || undefined,
-        code: data.code,
+        otp: data.code,
       });
       setIsVerified(true);
     } catch {
@@ -153,7 +153,7 @@ export default function VerifyOtpScreen() {
             Enter verification code
           </Text>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-5">
-            We sent a 6-digit code to{' '}
+            We sent a 4-digit code to{' '}
             <Text className="font-bold text-slate-900 dark:text-white">
               {pendingEmail || 'your email'}
             </Text>
@@ -173,7 +173,7 @@ export default function VerifyOtpScreen() {
 
         {/* OTP Input Component */}
         <View className="gap-6 my-2">
-          <ControlledOtpInput control={control} name="code" length={6} />
+          <ControlledOtpInput control={control} name="code" length={4} />
 
           {/* Submit Button */}
           <Button

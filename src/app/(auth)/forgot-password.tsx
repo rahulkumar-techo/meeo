@@ -79,7 +79,7 @@ export default function ForgotPasswordScreen() {
             Check your email
           </Text>
           <Text className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center px-4 leading-5">
-            We sent a 6-digit password reset code to{' '}
+            We sent a 4-digit password reset code to{' '}
             <Text className="font-bold text-slate-900 dark:text-white">
               {submittedEmail}
             </Text>

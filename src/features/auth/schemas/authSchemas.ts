@@ -38,35 +38,29 @@ export type SignInFormValues = z.infer<typeof signInSchema>;
 // ----------------------------------------------------------------------------
 // 2. Sign Up Schema
 // ----------------------------------------------------------------------------
-export const signUpSchema = z
-  .object({
-    firstName: z
-      .string()
-      .min(1, 'First name is required')
-      .min(2, 'First name must be at least 2 characters'),
-    lastName: z
-      .string()
-      .min(1, 'Last name is required')
-      .min(2, 'Last name must be at least 2 characters'),
-    email: z
-      .string()
-      .min(1, 'Email is required')
-      .email('Please enter a valid email address'),
-    password: z
-      .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
-      .regex(/[0-9]/, 'Must contain at least one number'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-    agreeToTerms: z
-      .boolean()
-      .refine((val) => val === true, 'You must agree to terms & privacy policy'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
+export const signUpSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, 'First name is required')
+    .min(2, 'First name must be at least 2 characters'),
+  lastName: z
+    .string()
+    .min(1, 'Last name is required')
+    .min(2, 'Last name must be at least 2 characters'),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Must contain at least one number'),
+  agreeToTerms: z
+    .boolean()
+    .refine((val) => val === true, 'You must agree to terms & privacy policy'),
+});
 
 export type SignUpFormValues = z.infer<typeof signUpSchema>;
 
@@ -88,8 +82,8 @@ export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export const verifyOtpSchema = z.object({
   code: z
     .string()
-    .min(6, "Please enter all 6 digits")
-    .max(6, "Verification code must be 6 digits")
+    .min(4, "Please enter all 4 digits")
+    .max(4, "Verification code must be 4 digits")
     .regex(/^\d+$/, "Code must contain only digits"),
 });
 

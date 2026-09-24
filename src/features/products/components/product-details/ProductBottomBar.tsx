@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, ShoppingBag, Plus, Minus } from 'lucide-react-native';
 import { useTheme } from '@/theme';
@@ -77,8 +77,11 @@ export function ProductBottomBar({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => onQuantityChange(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1}
-              style={[styles.stepperBtn, quantity <= 1 && { opacity: 0.3 }]}
+              disabled={quantity <= 1 || isAddingToCart}
+              style={[
+                styles.stepperBtn,
+                (quantity <= 1 || isAddingToCart) && { opacity: 0.3 },
+              ]}
             >
               <Minus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
             </TouchableOpacity>
@@ -95,7 +98,8 @@ export function ProductBottomBar({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => onQuantityChange(quantity + 1)}
-              style={styles.stepperBtn}
+              disabled={isAddingToCart}
+              style={[styles.stepperBtn, isAddingToCart && { opacity: 0.3 }]}
             >
               <Plus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
             </TouchableOpacity>
@@ -108,24 +112,44 @@ export function ProductBottomBar({
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={onAddToCart}
+          disabled={isAddingToCart}
           style={[
             styles.cartBtn,
             {
               borderColor: theme.primary,
               backgroundColor: isDark ? '#1E293B' : '#EFF6FF',
+              opacity: isAddingToCart ? 0.8 : 1,
             },
           ]}
         >
-          <ShoppingCart size={18} color={theme.primary} />
-          <Text style={[styles.cartBtnText, { color: theme.primary }]}>
-            Add to Cart
-          </Text>
+          {isAddingToCart ? (
+            <>
+              <ActivityIndicator size="small" color={theme.primary} />
+              <Text style={[styles.cartBtnText, { color: theme.primary }]}>
+                Adding to Bag...
+              </Text>
+            </>
+          ) : (
+            <>
+              <ShoppingCart size={18} color={theme.primary} />
+              <Text style={[styles.cartBtnText, { color: theme.primary }]}>
+                Add to Cart
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={onBuyNow}
-          style={[styles.buyBtn, { backgroundColor: theme.primary }]}
+          disabled={isAddingToCart}
+          style={[
+            styles.buyBtn,
+            {
+              backgroundColor: theme.primary,
+              opacity: isAddingToCart ? 0.6 : 1,
+            },
+          ]}
         >
           <ShoppingBag size={18} color="#FFFFFF" />
           <Text style={styles.buyBtnText}>Buy Now</Text>

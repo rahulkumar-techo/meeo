@@ -69,10 +69,12 @@ export function useLogin() {
 export function useRegister() {
   const queryClient = useQueryClient();
   const loginStore = useAuthStore((state) => state.login);
+  const setPendingEmail = useAuthStore((state) => state.setPendingEmail);
 
   return useMutation({
     mutationFn: (payload: RegisterRequest) => AuthService.register(payload),
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
+      setPendingEmail(variables.email);
       const { tokens, user } = extractAuthData(response);
       if (tokens.accessToken) {
         await loginStore(tokens, user);
@@ -97,12 +99,20 @@ export function useForgotPassword() {
   });
 }
 
-/**
- * Hook for OTP Verification
- */
 export function useVerifyOtp() {
+  const queryClient = useQueryClient();
+  const loginStore = useAuthStore((state) => state.login);
+
   return useMutation({
     mutationFn: (payload: VerifyOtpRequest) => AuthService.verifyOtp(payload),
+    onSuccess: async (response) => {
+      const { tokens, user } = extractAuthData(response);
+      if (tokens.accessToken) {
+        await loginStore(tokens, user);
+        queryClient.setQueryData(AUTH_QUERY_KEYS.me, user);
+        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.me });
+      }
+    },
   });
 }
 

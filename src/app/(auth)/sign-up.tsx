@@ -43,7 +43,6 @@ export default function SignUpScreen() {
       lastName: '',
       email: '',
       password: '',
-      confirmPassword: '',
       agreeToTerms: false,
     },
     mode: 'onBlur',
@@ -51,13 +50,19 @@ export default function SignUpScreen() {
 
   const onSubmit = async (data: SignUpFormValues) => {
     try {
-      await registerMutation.mutateAsync({
+      const response = await registerMutation.mutateAsync({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
       });
-      router.replace(AppRoute.home as any);
+
+      const resData = (response as any)?.data || response;
+      if (response?.token || resData?.token || resData?.accessToken) {
+        router.replace(AppRoute.home as any);
+      } else {
+        router.push(AppRoute.verifyOtp as any);
+      }
     } catch {
       // Handled by TanStack Query state
     }

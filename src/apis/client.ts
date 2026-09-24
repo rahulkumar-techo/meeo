@@ -12,6 +12,7 @@ export const api = axios.create({
   baseURL: API_CONFIG.baseURL,
   timeout: API_CONFIG.timeout,
   headers: API_CONFIG.headers,
+  withCredentials: true,
 });
 
 export const apiClient = api;

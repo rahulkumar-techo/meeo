@@ -15,9 +15,22 @@ export interface RegisterRequest {
     password: string;
 }
 
+export interface RegisterResponseData {
+    user: {
+        id: string;
+        createdAt: Date | string;
+        updatedAt: Date | string;
+        email: string | null;
+        firstName: string | null;
+        lastName: string | null;
+    };
+    tempOtp: string;
+}
+
 export interface VerifyOtpRequest {
     email?: string;
-    code: string;
+    code?: string;
+    otp?: string;
 }
 
 export interface ResendOtpRequest {
@@ -31,6 +44,7 @@ export interface ForgotPasswordRequest {
 export interface ResetPasswordRequest {
     email?: string;
     code?: string;
+    otp?: string;
     password: string;
 }
 
@@ -91,9 +105,17 @@ export const AuthService = {
     verifyOtp: async <T = any>(
         payload: VerifyOtpRequest,
     ): Promise<AuthResponse<T>> => {
+        const otpValue = payload.otp || payload.code || '';
+        const body: Record<string, any> = {
+            otp: otpValue,
+            code: otpValue,
+        };
+        if (payload.email) {
+            body.email = payload.email;
+        }
         const response = await apiClient.post<AuthResponse<T>>(
             ApiRoute.AUTH.OTP_VERIFICATION,
-            payload,
+            body,
         );
         return response.data;
     },
@@ -130,9 +152,18 @@ export const AuthService = {
     resetPassword: async <T = any>(
         payload: ResetPasswordRequest,
     ): Promise<AuthResponse<T>> => {
+        const otpValue = payload.otp || payload.code;
+        const body: Record<string, any> = {
+            password: payload.password,
+        };
+        if (payload.email) body.email = payload.email;
+        if (otpValue) {
+            body.otp = otpValue;
+            body.code = otpValue;
+        }
         const response = await apiClient.post<AuthResponse<T>>(
             ApiRoute.AUTH.RESET_PASSWORD,
-            payload,
+            body,
         );
         return response.data;
     },

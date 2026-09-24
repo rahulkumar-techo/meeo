@@ -61,12 +61,22 @@ export function normalizeApiError(error: AxiosError<{ message?: string; error?: 
   }
 
   const { status, data } = error.response;
+  let nestedErrorMessage: string | undefined;
+  if (Array.isArray(data?.errors) && data.errors.length > 0) {
+    nestedErrorMessage = data.errors[0]?.message || data.errors[0];
+  } else if (typeof data?.errors === 'object' && data?.errors !== null) {
+    const errorValues: any[] = Object.values(data.errors);
+    if (errorValues.length > 0) {
+      nestedErrorMessage = errorValues[0]?.message || (typeof errorValues[0] === 'string' ? errorValues[0] : undefined);
+    }
+  }
+
   const serverMessage =
+    nestedErrorMessage ||
     data?.message ||
     data?.error ||
     data?.msg ||
     data?.description ||
-    (Array.isArray(data?.errors) && data.errors[0]?.message) ||
     (typeof data?.errors === 'string' ? data.errors : undefined);
 
   switch (status) {

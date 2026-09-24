@@ -28,7 +28,7 @@ export function attachInterceptors(
   apiInstance: AxiosInstance,
   options?: SetupApiClientOptions
 ) {
-  // Request Interceptor: Synchronously inject auth token
+  // Request Interceptor: Synchronously inject auth token and guest sessionId
   apiInstance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     let token = authSession.getAccessToken();
 
@@ -48,12 +48,44 @@ export function attachInterceptors(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    config.withCredentials = true;
+
+    // Inject guest session ID if present
+    let sessionId = authSession.getSessionId();
+    if (!sessionId) {
+      sessionId = await secureStorage.getSessionId();
+      if (sessionId) {
+        authSession.setSessionId(sessionId);
+      }
+    }
+
+    if (sessionId && config.headers) {
+      config.headers['x-session-id'] = sessionId;
+      config.headers['X-Session-Id'] = sessionId;
+      config.headers['Session-Id'] = sessionId;
+      config.headers['session-id'] = sessionId;
+      config.headers['sessionId'] = sessionId;
+      config.headers['Cookie'] = `sessionId=${sessionId}; session=${sessionId}`;
+    }
+
     return config;
   });
 
-  // Response Interceptor: HTML Response Guard, Silent 401 Refresh & Graceful Error Normalization
+  // Response Interceptor: HTML Response Guard, Session Capture, Silent 401 Refresh & Graceful Error Normalization
   apiInstance.interceptors.response.use(
     (res) => {
+      // Automatically capture and persist guest sessionId from response payload or headers
+      const resSessionId =
+        res.data?.data?.sessionId ||
+        res.data?.sessionId ||
+        res.headers?.['x-session-id'] ||
+        res.headers?.['session-id'];
+
+      if (resSessionId && typeof resSessionId === 'string') {
+        authSession.setSessionId(resSessionId);
+        secureStorage.setSessionId(resSessionId);
+      }
+
       // Guard against accidental SPA HTML index fallback for missing/unrouted backend endpoints
       if (
         typeof res.data === 'string' &&

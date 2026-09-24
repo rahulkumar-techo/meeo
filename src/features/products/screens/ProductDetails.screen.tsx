@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Share,
+  Alert,
   StyleSheet,
   StatusBar,
 } from 'react-native';
@@ -12,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Heart, Share2 } from 'lucide-react-native';
 import { useGetProductById } from '../hooks/product.hook';
 import type { Product, ProductVariant } from '../types/product.types';
+import { useAddToCart } from '@/features/cart';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { useTheme } from '@/theme';
 import { DUMMY_100_PRODUCTS } from '@/temp_data/dummyProducts';
@@ -21,9 +23,9 @@ import {
   ProductImageGallery,
   ProductHeaderInfo,
   ProductVariantSelector,
-  ProductSpecifications,
   ProductGuarantees,
   ProductDescription,
+  ProductSpecifications,
   ProductBottomBar,
   ProductDetailsSkeleton,
 } from '../components/product-details';
@@ -42,9 +44,22 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // Fetch real product details by ID
+  // Fetch real product details by ID immediately in parallel with screen slide
   const { data, isLoading, isError, error, refetch, isRefetching } =
     useGetProductById(productId);
+
+  // Add to cart mutation with automatic redirection to cart tab
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart({
+    onSuccess: () => {
+      router.push('/(tabs)/cart');
+    },
+    onError: (err: any) => {
+      Alert.alert(
+        'Unable to add to bag',
+        err?.response?.data?.message || err?.message || 'Please try again.'
+      );
+    },
+  });
 
   // Extract product object from API response or fallback to dummy
   const product: Product | null = useMemo(() => {
@@ -138,6 +153,45 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
   const handleSelectVariant = useCallback((index: number) => {
     setSelectedVariantIndex(index);
   }, []);
+
+  const handleAddToCart = useCallback(() => {
+    if (!product) return;
+    const variantId =
+      activeVariant?.id ||
+      (product.variants && product.variants.length > 0
+        ? product.variants[0]?.id
+        : product.id);
+
+    if (!variantId) return;
+
+    addToCart({
+      variantId,
+      quantity,
+    });
+  }, [product, activeVariant, quantity, addToCart]);
+
+  const handleBuyNow = useCallback(() => {
+    if (!product) return;
+    const variantId =
+      activeVariant?.id ||
+      (product.variants && product.variants.length > 0
+        ? product.variants[0]?.id
+        : product.id);
+
+    if (!variantId) return;
+
+    addToCart(
+      {
+        variantId,
+        quantity,
+      },
+      {
+        onSuccess: () => {
+          router.push('/(tabs)/cart');
+        },
+      }
+    );
+  }, [product, activeVariant, quantity, addToCart, router]);
 
   // Loading Skeleton State
   if (isLoading && !product) {
@@ -292,12 +346,9 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
         quantity={quantity}
         onQuantityChange={setQuantity}
         currency="₹"
-        onAddToCart={() => {
-          // Add to cart handler
-        }}
-        onBuyNow={() => {
-          // Buy now handler
-        }}
+        isAddingToCart={isAddingToCart}
+        onAddToCart={handleAddToCart}
+        onBuyNow={handleBuyNow}
       />
     </View>
   );

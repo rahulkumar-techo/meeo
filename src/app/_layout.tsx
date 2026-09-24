@@ -13,6 +13,14 @@ import { ThemeProvider, useTheme } from '../theme';
 import { useAuthStore } from '@/features/auth';
 import { queryClient } from '@/apis/query-client';
 import '../../global.css';
+import { useScreenProfiler } from "@/hooks/native-performace/usePerformanceMonitor";
+
+// Global navigation monitor tracking screen transition times in development mode
+function NavigationPerformanceMonitor() {
+  useScreenProfiler();
+  return null;
+}
+
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -42,6 +50,7 @@ function RootLayoutContent() {
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+       <NavigationPerformanceMonitor />
       <Stack
         screenOptions={{
           headerShown: false,

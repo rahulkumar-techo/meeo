@@ -8,6 +8,7 @@ export const getBaseUrl = (): string => BASE_URL;
 export const API_CONFIG = {
   baseURL: BASE_URL,
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

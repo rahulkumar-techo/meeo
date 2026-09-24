@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { useGetCart } from '@/features/cart';
 
 export interface CustomTabBarProps {
   state: any;
@@ -74,6 +75,13 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
   const currentRouteName = state.routes[state.index]?.name || 'index';
   const isAccountFocused = currentRouteName === 'account';
   const bottomInset = insets.bottom;
+
+  // Real-time cart item count for badge
+  const { data: cartData } = useGetCart();
+  const cartBadgeCount =
+    cartData?.data?.summary?.itemCount ??
+    cartData?.data?.summary?.totalItems ??
+    (Array.isArray(cartData?.data?.items) ? cartData.data.items.length : 0);
 
   const layoutsRef = useRef<{ [key: string]: { x: number; width: number } }>({});
   const indicatorX = useSharedValue(0);
@@ -212,6 +220,8 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
           {MAIN_TABS.map((tab) => {
             const isFocused = currentRouteName === tab.name;
             const IconComponent = tab.Icon;
+            const badgeCount =
+              tab.name === 'cart' ? cartBadgeCount : tab.badgeCount;
 
             const onPress = () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -246,10 +256,10 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
                     strokeWidth={isFocused ? 2.4 : 1.8}
                   />
 
-                  {typeof tab.badgeCount === 'number' && tab.badgeCount > 0 && (
+                  {typeof badgeCount === 'number' && badgeCount > 0 && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>
-                        {tab.badgeCount > 99 ? '99+' : tab.badgeCount}
+                        {badgeCount > 99 ? '99+' : badgeCount}
                       </Text>
                     </View>
                   )}

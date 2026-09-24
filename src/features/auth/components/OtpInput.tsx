@@ -16,7 +16,7 @@ export interface OtpInputProps {
 }
 
 export function OtpInput({
-  length = 6,
+  length = 4,
   value = "",
   onChange,
   hasError = false,
@@ -96,7 +96,7 @@ export interface ControlledOtpInputProps<TFieldValues extends FieldValues> {
 export function ControlledOtpInput<TFieldValues extends FieldValues>({
   control,
   name,
-  length = 6,
+  length = 4,
 }: ControlledOtpInputProps<TFieldValues>) {
   return (
     <Controller
