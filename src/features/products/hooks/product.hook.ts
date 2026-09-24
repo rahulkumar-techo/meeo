@@ -4,6 +4,7 @@ import type {
   GetProductsParams,
   ProductsResponse,
   ProductDetailResponse,
+  ProductAttributesResponse,
   GenericApiResponse,
 } from "../types/product.types";
 
@@ -78,7 +79,7 @@ export const useGetProductBySlug = <TData = ProductDetailResponse>(
 /**
  * Hook to fetch dynamic product attributes (e.g. Size, Color)
  */
-export const useGetProductAttributes = <TData = GenericApiResponse<any>>(
+export const useGetProductAttributes = <TData = ProductAttributesResponse>(
   productId?: string,
   options?: QueryOptionsWithoutKeyAndFn<TData>
 ) => {

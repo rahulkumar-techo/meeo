@@ -4,12 +4,17 @@ import type {
   GetProductsParams,
   ProductsResponse,
   ProductDetailResponse,
-  GenericApiResponse,
+  ProductAttributesResponse,
 } from "../types/product.types";
 
+/**
+ * Product API Service
+ * Reference: app-docs/product.customer.md
+ */
 export const ProductApiService = {
   /**
-   * Fetch all products with pagination and filters
+   * 1. List Products (Storefront Listing & Grid)
+   * GET /api/v1/products
    */
   async getAllProducts(params?: GetProductsParams): Promise<ProductsResponse> {
     const response = await apiClient.get<ProductsResponse>(
@@ -20,7 +25,8 @@ export const ProductApiService = {
   },
 
   /**
-   * Fetch single product details by product ID
+   * 2. Get Product by ID
+   * GET /api/v1/products/:id
    */
   async getProductById(productId: string): Promise<ProductDetailResponse> {
     const response = await apiClient.get<ProductDetailResponse>(
@@ -30,7 +36,8 @@ export const ProductApiService = {
   },
 
   /**
-   * Fetch single product details by slug
+   * 3. Get Product by Slug
+   * GET /api/v1/products/slug/:slug
    */
   async getProductBySlug(slug: string): Promise<ProductDetailResponse> {
     const response = await apiClient.get<ProductDetailResponse>(
@@ -40,12 +47,13 @@ export const ProductApiService = {
   },
 
   /**
-   * Fetch product unique attributes
+   * 4. Get Product Attributes Matrix
+   * GET /api/v1/products/:id/attributes
    */
   async getProductAttributes(
     productId: string
-  ): Promise<GenericApiResponse<any>> {
-    const response = await apiClient.get<GenericApiResponse<any>>(
+  ): Promise<ProductAttributesResponse> {
+    const response = await apiClient.get<ProductAttributesResponse>(
       ApiRoute.PRODUCT.PRODUCT_ATTRIBUTES(productId)
     );
     return response.data;

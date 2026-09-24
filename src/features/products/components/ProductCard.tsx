@@ -3,9 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ImageSourcePropType,
+  StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Heart, Star } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import type { Product } from '../types/product.types';
@@ -30,6 +31,9 @@ export interface ProductCardProps {
   className?: string;
 }
 
+const FALLBACK_IMAGE_URI =
+  'https://ik.imagekit.io/ww7mydmoc/ChatGPT%20Image%20Sep%2024,%202026,%2009_28_12%20AM.png';
+
 export function ProductCard({
   product,
   id,
@@ -48,33 +52,35 @@ export function ProductCard({
   variant = 'vertical',
   className = '',
 }: ProductCardProps) {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   const isHorizontal = variant === 'horizontal';
 
-  // Resolve properties from either prop directly or product object
+  // Resolve product title
   const title = propTitle ?? product?.name ?? product?.title ?? '';
+
+  // Resolve product brand
   const brand =
     propBrand ??
     (typeof product?.brand === 'object' ? product?.brand?.name : product?.brand);
 
+  // Resolve current price
   const rawPrice =
     propPrice ??
-    (product?.variants?.[0]?.price
+    (product?.variants?.[0]?.price !== undefined
       ? Number(product.variants[0].price)
-      : product?.price ?? 0);
+      : product?.minPrice ?? product?.price ?? 0);
 
+  // Resolve original/compare-at price for discount calculations
   const rawOriginalPrice =
     propOriginalPrice ??
-    (product?.variants?.[0]?.compareAtPrice
+    (product?.variants?.[0]?.compareAtPrice !== undefined
       ? Number(product.variants[0].compareAtPrice)
-      : product?.originalPrice);
+      : product?.maxPrice ?? product?.originalPrice);
 
-  const resolvedImageUrl =
-    propImageUrl ??
-    product?.images?.[0]?.url ??
-    product?.bannerImage?.url ??
-    product?.imageUrl;
+  // Single source of truth for product image
+  const imageSource: string | ImageSourcePropType =
+    propImageUrl ?? product?.images?.[0]?.url ?? FALLBACK_IMAGE_URI;
 
   const rating = propRating ?? product?.rating ?? 4.8;
   const reviewCount = propReviewCount ?? product?.reviewCount;
@@ -95,17 +101,10 @@ export function ProductCard({
 
   const formattedOriginalPrice = rawOriginalPrice
     ? rawOriginalPrice.toLocaleString('en-IN', {
-        minimumFractionDigits: rawOriginalPrice % 1 === 0 ? 0 : 2,
-        maximumFractionDigits: 2,
-      })
+      minimumFractionDigits: rawOriginalPrice % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    })
     : null;
-
-  const imageSource =
-    typeof resolvedImageUrl === 'string'
-      ? { uri: resolvedImageUrl }
-      : resolvedImageUrl || {
-          uri: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-        };
 
   if (isHorizontal) {
     return (
@@ -114,15 +113,16 @@ export function ProductCard({
         activeOpacity={0.85}
         className={`flex-row p-2 bg-transparent gap-3 ${className}`}
       >
-        {/* Product Image without background container */}
-        <View className="relative w-28 h-32 items-center justify-center">
+        {/* Product Image */}
+        <View className="relative w-28 h-32 items-center justify-center rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800/60">
           <Image
-            source={imageSource}
-            className="w-full h-full"
-            resizeMode="contain"
+            source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
+            style={styles.fullSize}
+            contentFit="cover"
+            transition={200}
           />
 
-          {/* Rating overlay on bottom-left of image */}
+          {/* Rating overlay */}
           <View className="absolute bottom-1.5 left-1.5 flex-row items-center bg-black/60 dark:bg-black/75 px-1.5 py-0.5 rounded-md gap-0.5">
             <Star size={10} color="#FBBF24" fill="#FBBF24" />
             <Text className="text-[10px] font-bold text-white">
@@ -190,12 +190,13 @@ export function ProductCard({
       activeOpacity={0.85}
       className={`bg-transparent overflow-hidden ${className}`}
     >
-      {/* Slightly larger Product Image Container without background */}
-      <View className="relative w-full aspect-[1/1.12] items-center justify-center">
+      {/* Product Image Container */}
+      <View className="relative w-full aspect-[1/1.12] items-center justify-center rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800/60">
         <Image
-          source={imageSource}
-          className="w-full h-full"
-          resizeMode="contain"
+          source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
+          style={styles.fullSize}
+          contentFit="cover"
+          transition={200}
         />
 
         {/* Top Badges (e.g. Featured / Tag) */}
@@ -276,5 +277,12 @@ export function ProductCard({
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  fullSize: {
+    width: '100%',
+    height: '100%',
+  },
+});
 
 export default ProductCard;

@@ -44,6 +44,16 @@ export function ProductVariantSelector({
             minimumFractionDigits: 0,
           });
 
+          const attributeLabel =
+            variant.attributeValues && variant.attributeValues.length > 0
+              ? variant.attributeValues
+                  .map((av) => av.attributeValue?.value)
+                  .filter(Boolean)
+                  .join(' / ')
+              : '';
+
+          const displayLabel = attributeLabel || variant.sku || `Option ${index + 1}`;
+
           return (
             <TouchableOpacity
               key={variant.id || index}
@@ -84,7 +94,7 @@ export function ProductVariantSelector({
                     },
                   ]}
                 >
-                  {variant.sku || `Option ${index + 1}`}
+                  {displayLabel}
                 </Text>
 
                 {isSelected && (

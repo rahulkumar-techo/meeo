@@ -59,6 +59,7 @@ export function ProductListsSection({
   const { theme, isDark } = useTheme();
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
+  // Fetch products via REST TanStack Query hook
   const {
     data,
     isLoading,
@@ -67,6 +68,8 @@ export function ProductListsSection({
     refetch,
     isRefetching,
   } = useGetAllProducts(params);
+
+  const isRefreshing = externalRefreshing ?? (isRefetching || internalRefreshing);
 
   // Handle pull-to-refresh
   const handleRefresh = useCallback(async () => {
@@ -88,20 +91,25 @@ export function ProductListsSection({
     }
   }, [externalOnRefresh, refetch]);
 
-  const isRefreshing = externalRefreshing ?? (isRefetching || internalRefreshing);
-
-  // Extract products array from various API response shapes
+  // Extract products array from REST API response
   const products: Product[] = useMemo(() => {
-    const apiItems =
-      data?.data?.items ??
-      (Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
+    const rawData = data?.data;
+    let items: Product[] = [];
 
-    if (apiItems.length > 0) {
-      return apiItems as Product[];
+    if (Array.isArray(rawData)) {
+      items = rawData;
+    } else if (Array.isArray(rawData?.items)) {
+      items = rawData.items;
+    } else if (Array.isArray(data)) {
+      items = data as Product[];
     }
 
-    // Use dummy data as fallback if enabled and API returned no items
-    if (fallbackToDummyData && (!data || apiItems.length === 0)) {
+    if (items.length > 0) {
+      return items;
+    }
+
+    // Use dummy data fallback when offline or no records returned
+    if (fallbackToDummyData && (!data || items.length === 0)) {
       return DUMMY_100_PRODUCTS as unknown as Product[];
     }
 
@@ -140,14 +148,14 @@ export function ProductListsSection({
       <View style={[styles.container, contentContainerStyle]}>
         {ListHeaderComponent}
         <View style={styles.skeletonGrid}>
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, index) => (
             <View
-              key={i}
+              key={index}
               style={[
                 styles.productCol,
                 {
-                  paddingLeft: i % 2 === 0 ? 0 : 6,
-                  paddingRight: i % 2 === 0 ? 6 : 0,
+                  paddingLeft: index % 2 === 0 ? 0 : 6,
+                  paddingRight: index % 2 === 0 ? 6 : 0,
                 },
               ]}
             >
@@ -168,13 +176,13 @@ export function ProductListsSection({
           title="Could not load products"
           message={error?.message || 'Please check your connection and try again.'}
           onRetry={() => refetch()}
-          isRetrying={isRefetching}
+          isRetrying={isRefreshing}
         />
       </View>
     );
   }
 
-  // Empty state
+  // Empty state when no items found
   if (!isLoading && products.length === 0) {
     return (
       <View style={[styles.container, contentContainerStyle]}>
