@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MapPin, ArrowRight, ShieldCheck, Tag } from 'lucide-react-native';
+import { Button } from '@/components/ui';
 import { useTheme } from '@/theme';
 import { useGetCart } from '@/features/cart';
 import { useValidateCheckout } from '../hooks/checkout.hook';
@@ -293,16 +294,16 @@ export function CheckoutReviewStep({
           </Text>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <Button
+          variant="dark"
+          size="md"
+          rounded="2xl"
           onPress={onProceedToPayment}
-          className="flex-row items-center gap-2 px-5 py-3 rounded-2xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614]"
+          rightIcon={<ArrowRight size={16} color={isDark ? '#0F172A' : '#FFFFFF'} />}
+          className="px-5"
         >
-          <Text className="text-sm font-bold text-white dark:text-slate-950">
-            Proceed to Payment
-          </Text>
-          <ArrowRight size={16} color={isDark ? '#0F172A' : '#FFFFFF'} />
-        </TouchableOpacity>
+          Proceed to Payment
+        </Button>
       </View>
     </View>
   );

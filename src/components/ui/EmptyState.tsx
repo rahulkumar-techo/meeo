@@ -27,22 +27,22 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <View
-      className={`items-center justify-center p-8 text-center max-w-md mx-auto ${className}`}
+      className={`w-full items-center justify-center px-4 py-8 ${className}`}
       {...props}
     >
-      <View className="w-20 h-20 rounded-full bg-primary-light/60 dark:bg-blue-950/60 items-center justify-center mb-4">
-        {icon || <ShoppingBag size={36} color="#2563EB" />}
+      <View className="w-20 h-20 rounded-full bg-primary/10 dark:bg-primary/20 items-center justify-center mb-4">
+        {icon || <ShoppingBag size={36} color="#8C5338" />}
       </View>
 
-      <Text className="text-h2 font-bold text-text-primary dark:text-slate-100 text-center mb-2">
+      <Text className="text-xl font-bold text-text-primary dark:text-text-primary-dark text-center mb-2 tracking-tight">
         {title}
       </Text>
 
-      <Text className="text-body text-text-secondary dark:text-slate-400 text-center mb-6 max-w-[280px]">
+      <Text className="text-sm text-text-secondary dark:text-text-secondary-dark text-center mb-6 max-w-[280px] leading-5">
         {description}
       </Text>
 
-      <View className="w-full gap-2.5 max-w-[240px]">
+      <View className="w-full max-w-[200px] gap-2.5 items-center justify-center">
         {actionText && onActionPress && (
           <Button
             variant="primary"
@@ -68,3 +68,6 @@ export function EmptyState({
     </View>
   );
 }
+
+export default EmptyState;
+

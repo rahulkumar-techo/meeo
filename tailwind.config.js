@@ -12,17 +12,19 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563EB',
-          dark: '#1D4ED8',
-          light: '#DBEAFE',
+          DEFAULT: '#2D2621',
+          dark: '#1A1614',
+          light: '#F5EBE6',
         },
         secondary: {
-          DEFAULT: '#7C3AED',
-          light: '#EDE9FE',
+          DEFAULT: '#8C5338',
+          dark: '#6E3F29',
+          light: '#F9EFEA',
         },
         accent: {
-          DEFAULT: '#F59E0B',
-          light: '#FEF3C7',
+          DEFAULT: '#C27838',
+          dark: '#9E5E26',
+          light: '#FDF3E7',
         },
         success: {
           DEFAULT: '#16A34A',
@@ -37,40 +39,40 @@ module.exports = {
           light: '#FEE2E2',
         },
         info: {
-          DEFAULT: '#0284C7',
-          light: '#E0F2FE',
+          DEFAULT: '#8C5338',
+          light: '#F9EFEA',
         },
         background: {
-          DEFAULT: '#F8FAFC',
-          dark: '#0B0F17',
+          DEFAULT: '#FAF8F5',
+          dark: '#120F0D',
         },
         surface: {
           DEFAULT: '#FFFFFF',
-          dark: '#161F30',
+          dark: '#1C1714',
           elevated: '#FFFFFF',
-          'elevated-dark': '#1E293B',
-          subtle: '#F1F5F9',
-          'subtle-dark': '#111827',
+          'elevated-dark': '#28221E',
+          subtle: '#F3EFEA',
+          'subtle-dark': '#181411',
         },
         'text-primary': {
-          DEFAULT: '#0F172A',
-          dark: '#F8FAFC',
+          DEFAULT: '#2D2621',
+          dark: '#FAF8F5',
         },
         'text-secondary': {
-          DEFAULT: '#64748B',
-          dark: '#94A3B8',
+          DEFAULT: '#786C64',
+          dark: '#A89F97',
         },
         'text-muted': {
-          DEFAULT: '#94A3B8',
-          dark: '#64748B',
+          DEFAULT: '#A89F97',
+          dark: '#786C64',
         },
         border: {
-          DEFAULT: '#E2E8F0',
-          dark: '#1E293B',
+          DEFAULT: '#E8E2DA',
+          dark: '#2E2620',
         },
         disabled: {
-          DEFAULT: '#CBD5E1',
-          dark: '#334155',
+          DEFAULT: '#D5CDC4',
+          dark: '#3D352F',
         },
       },
       borderRadius: {

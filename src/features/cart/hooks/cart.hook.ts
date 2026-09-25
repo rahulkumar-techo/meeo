@@ -28,23 +28,22 @@ type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
 >;
 
 /**
- * Hook to fetch active shopping cart
+ * Hook to fetch active shopping cart with 5-minute stale cache
  */
 export const useGetCart = <TData = CartApiResponse<Cart>>(
   options?: QueryOptionsWithoutKeyAndFn<TData>
 ) => {
-
-
   return useQuery({
     queryKey: CART_QUERY_KEYS.details(),
     queryFn: () => CartApiService.getCart() as Promise<TData>,
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 60 * 5, // 5 minutes fresh cache
+    gcTime: 1000 * 60 * 10,   // 10 minutes cache persistence
     ...options,
   });
 };
 
 /**
- * Hook to add item to cart
+ * Hook to add item to cart with automatic cache invalidation
  */
 export const useAddToCart = (
   options?: UseMutationOptions<CartApiResponse<Cart>, Error, AddToCartPayload>
@@ -55,12 +54,16 @@ export const useAddToCart = (
     mutationFn: (payload: AddToCartPayload) => CartApiService.addToCart(payload),
     onSuccess: (...args: any[]) => {
       const serverResponse = args[0];
-      // Only overwrite cache if server response contains the full cart items array
+      // If server returns updated cart structure, update cache immediately
       if (serverResponse?.data?.items && Array.isArray(serverResponse.data.items)) {
         queryClient.setQueryData(CART_QUERY_KEYS.details(), serverResponse);
       }
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
+    },
+    onSettled: (...args: any[]) => {
+      queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      (options?.onSettled as any)?.(...args);
     },
     ...options,
   });

@@ -1,5 +1,5 @@
-import { useCallback, useEffect } from "react";
-import { usePathname } from "expo-router";
+import { useCallback, useEffect, useRef } from "react";
+import { useNavigationContainerRef } from "expo-router";
 
 // Schedules execution after the current paint frame and JS work have completed
 function scheduleAfterPaint(callback: () => void): () => void {
@@ -39,9 +39,17 @@ function logTiming(
 }
 
 /**
- * Hook to profile a screen or component's mount-to-interactive transition.
- * 
- * Usage:
+ * Hook to profile a screen or global navigation transitions.
+ *
+ * Usage in RootLayout:
+ * ```tsx
+ * function NavigationPerformanceMonitor() {
+ *   useScreenProfiler();
+ *   return null;
+ * }
+ * ```
+ *
+ * Usage in Screen:
  * ```tsx
  * export default function CheckoutScreen() {
  *   useScreenProfiler("Checkout Screen");
@@ -50,34 +58,61 @@ function logTiming(
  * ```
  */
 export function useScreenProfiler(customName?: string, thresholdMs = 150) {
-  const pathname = usePathname();
-  const screenName = customName || pathname;
+  let navigationRef: any = null;
+  try {
+    navigationRef = useNavigationContainerRef();
+  } catch {
+    navigationRef = null;
+  }
+  const nav = navigationRef;
+  const lastRouteRef = useRef<string>("");
 
   useEffect(() => {
-    if (!__DEV__) return;
+    if (!__DEV__ || !nav) return;
+
     const start = performance.now();
     const isInitialColdLaunch = !isColdLaunchComplete;
 
-    const cancel = scheduleAfterPaint(() => {
+    const initialRouteName =
+      customName || (nav.isReady?.() ? nav.getCurrentRoute?.()?.name : null) || "Initial Screen";
+
+    const cancelInitial = scheduleAfterPaint(() => {
       const duration = performance.now() - start;
-      // Cold launch includes bundle load, store hydration, and splash dismiss (higher threshold)
       const effectiveThreshold = isInitialColdLaunch ? 500 : thresholdMs;
       const category = isInitialColdLaunch ? "Cold Launch" : "Navigation";
 
-      logTiming(category, screenName, duration, effectiveThreshold);
-
-      if (pathname === "/home" || pathname.includes("(tabs)")) {
-        isColdLaunchComplete = true;
-      }
+      logTiming(category, initialRouteName, duration, effectiveThreshold);
+      isColdLaunchComplete = true;
     });
 
-    return cancel;
-  }, [screenName, thresholdMs, pathname]);
+    // Listen for navigation state transitions safely
+    const unsubscribe = nav.addListener?.("state", () => {
+      const currentRoute = nav.isReady?.() ? nav.getCurrentRoute?.() : null;
+      const currentName = customName || currentRoute?.name || "Screen";
+
+      // Prevent duplicate logs for the exact same route state tick
+      if (lastRouteRef.current === currentName && !customName) return;
+      lastRouteRef.current = currentName;
+
+      const navStart = performance.now();
+      scheduleAfterPaint(() => {
+        const navDuration = performance.now() - navStart;
+        logTiming("Navigation", currentName, navDuration, thresholdMs);
+      });
+    });
+
+    return () => {
+      cancelInitial();
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, [customName, thresholdMs, nav]);
 }
 
 /**
  * Imperative manual trace for modals, bottom sheets, or multi-step operations.
- * 
+ *
  * Usage:
  * ```tsx
  * const trace = startTrace("Filter BottomSheet Open", "BottomSheet");
@@ -88,7 +123,7 @@ export function useScreenProfiler(customName?: string, thresholdMs = 150) {
 export function startTrace(
   label: string,
   category: "Modal" | "BottomSheet" | "Action" | "Task" = "Task",
-  thresholdMs = 120
+  thresholdMs = 100
 ) {
   if (!__DEV__) {
     return { stop: () => {} };
@@ -97,129 +132,51 @@ export function startTrace(
   const start = performance.now();
 
   return {
-    stop: (extraInfo?: string) => {
-      return scheduleAfterPaint(() => {
+    stop: (extra?: string) => {
+      scheduleAfterPaint(() => {
         const duration = performance.now() - start;
-        logTiming(category, label, duration, thresholdMs, extraInfo);
+        logTiming(category, label, duration, thresholdMs, extra);
       });
     },
   };
 }
 
 /**
- * Universal hook providing profiling helpers for Buttons, Modals, BottomSheets, and Actions.
- * 
+ * Wrapper hook to measure interactive button / touchable handlers.
+ *
  * Usage:
  * ```tsx
- * const { profileAction, profileModal, profileBottomSheet, startTrace } = usePerformanceMonitor();
- * 
+ * const { profileAction } = useActionProfiler();
  * <Button onPress={() => profileAction("Add To Cart", () => addItem(item))} />
- * <Button onPress={() => profileBottomSheet("Filter Sheet", () => sheetRef.present())} />
  * ```
  */
-export function usePerformanceMonitor() {
-  // Wrap any synchronous or asynchronous button/action handler
+export function useActionProfiler() {
   const profileAction = useCallback(
-    <T,>(name: string, action: () => T, thresholdMs = 100): T => {
-      if (!__DEV__) return action();
+    (actionName: string, actionFn: () => void | Promise<void>, thresholdMs = 100) => {
+      if (!__DEV__) {
+        actionFn();
+        return;
+      }
 
       const start = performance.now();
-      const result = action();
+      const result = actionFn();
 
-      scheduleAfterPaint(() => {
-        const duration = performance.now() - start;
-        logTiming("Action", name, duration, thresholdMs);
-      });
-
-      return result;
+      if (result instanceof Promise) {
+        result.finally(() => {
+          scheduleAfterPaint(() => {
+            const duration = performance.now() - start;
+            logTiming("Action", actionName, duration, thresholdMs, "Async");
+          });
+        });
+      } else {
+        scheduleAfterPaint(() => {
+          const duration = performance.now() - start;
+          logTiming("Action", actionName, duration, thresholdMs);
+        });
+      }
     },
     []
   );
 
-  // Profile modal presentations
-  const profileModal = useCallback(
-    (modalName: string, openFn: () => void, thresholdMs = 120) => {
-      if (!__DEV__) return openFn();
-
-      const start = performance.now();
-      openFn();
-
-      scheduleAfterPaint(() => {
-        const duration = performance.now() - start;
-        logTiming("Modal", modalName, duration, thresholdMs);
-      });
-    },
-    []
-  );
-
-  // Profile bottom sheet presentations / dismissals
-  const profileBottomSheet = useCallback(
-    (sheetName: string, actionFn: () => void, thresholdMs = 120) => {
-      if (!__DEV__) return actionFn();
-
-      const start = performance.now();
-      actionFn();
-
-      scheduleAfterPaint(() => {
-        const duration = performance.now() - start;
-        logTiming("BottomSheet", sheetName, duration, thresholdMs);
-      });
-    },
-    []
-  );
-
-  return {
-    profileAction,
-    profileModal,
-    profileBottomSheet,
-    startTrace,
-  };
+  return { profileAction };
 }
-
-/*
-1. 📱 Screens & Tabs (Automatic & Custom)
-What it measures: From the moment a screen starts mounting until all child components, animations, and the JS thread finish rendering and become responsive to user touch.
-How to use:
---
-useScreenProfiler("Cart Screen"); // or leave empty for automatic route name
-=====================>
-2🔘 Buttons & Pressables
-What it measures: The time from user tap, through state updates and re-renders, until the UI finishes responding.
-How to use:
---
-const { profileAction } = usePerformanceMonitor();
-<Pressable onPress={() => profileAction("Apply Coupon Button", () => applyCoupon())}>
-  <Text>Apply</Text>
-</Pressable>
-===============================>
-. 3.📄 Bottom Sheets (@gorhom/bottom-sheet, etc.)
-What it measures: Time taken to open/expand the bottom sheet until all contents inside the sheet are mounted and ready.
-How to use:
-tsx
-const { profileBottomSheet } = usePerformanceMonitor();
-const handleOpenSheet = () => {
-  profileBottomSheet("Menu Filter Sheet", () => {
-    bottomSheetRef.current?.present();
-  });
-};
-=================================>
-4.. 🪟 Modals & Popups
-What it measures: Transition and render lag when opening alert dialogs, address pickers, or confirmation modals.
-How to use:
-tsx
-const { profileModal } = usePerformanceMonitor();
-const handleOpenReviewModal = () => {
-  profileModal("Delivery Review Modal", () => {
-    setIsModalVisible(true);
-  });
-};
-====================================>
-5. ⏳ Async Tasks, API Calls & Multi-Step Workflows
-What it measures: Total user-perceived delay for long operations (e.g. fetching cart, calculating taxes, opening payment gateway).
-How to use:
-tsx
-const trace = startTrace("Checkout Payment Init", "Action");
-await initializePayment();
-trace.stop();
-
-*/ 

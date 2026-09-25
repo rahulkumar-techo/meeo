@@ -21,14 +21,13 @@ function NavigationPerformanceMonitor() {
   return null;
 }
 
-
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false,
 });
 
 function RootLayoutContent() {
-  const { isDark } = useTheme();
+  const { theme, isDark } = useTheme();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
@@ -50,12 +49,12 @@ function RootLayoutContent() {
   return (
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
-       <NavigationPerformanceMonitor />
+      <NavigationPerformanceMonitor />
       <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: {
-            backgroundColor: isDark ? '#0B0F17' : '#F1F5F9',
+            backgroundColor: theme.background,
           },
         }}
       >

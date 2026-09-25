@@ -115,11 +115,11 @@ export function ProductVariantSelector({
                   {
                     color: isSelected
                       ? isDark
-                        ? '#BFDBFE'
-                        : '#2563EB'
+                        ? '#E2B897'
+                        : '#2D2621'
                       : isDark
-                      ? '#94A3B8'
-                      : '#64748B',
+                      ? '#A89F97'
+                      : '#786C64',
                     fontWeight: isSelected ? '800' : '600',
                   },
                 ]}

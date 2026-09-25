@@ -16,7 +16,7 @@ export default function PlayScreen() {
       <View className="px-5 pt-3 pb-3 flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <View className="w-8 h-8 rounded-full bg-primary/10 items-center justify-center">
-            <Play size={16} color="#2563EB" />
+            <Play size={16} color="#2D2621" />
           </View>
           <Text className="text-display-sm font-bold text-text-primary dark:text-white">
             Play & Discover

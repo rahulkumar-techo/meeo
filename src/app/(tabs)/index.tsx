@@ -70,15 +70,10 @@ export default function HomeScreen() {
         <HomeBanner />
 
         {/* Flash Deals / Product Section Header */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
+        <View className="flex-row items-center justify-between mb-3 mt-1">
+          <View className="flex-row items-center gap-1.5">
             <Zap size={20} color="#F59E0B" />
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: isDark ? '#F8FAFC' : '#0F172A' },
-              ]}
-            >
+            <Text className="text-lg font-bold text-text-primary dark:text-text-primary-dark">
               All Products
             </Text>
           </View>
@@ -90,56 +85,47 @@ export default function HomeScreen() {
         </View>
       </View>
     ),
-    [isDark]
+    []
   );
 
   const listFooter = useMemo(
     () => (
-      <View style={{ marginTop: 24 }}>
+      <View className="mt-6">
         {/* Trending Section */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
+        <View className="flex-row items-center justify-between mb-3 mt-1">
+          <View className="flex-row items-center gap-1.5">
             <TrendingUp size={20} color={theme.primary} />
-            <Text
-              style={[
-                styles.sectionTitle,
-                { color: isDark ? '#F8FAFC' : '#0F172A' },
-              ]}
-            >
+            <Text className="text-lg font-bold text-text-primary dark:text-text-primary-dark">
               Trending Now
             </Text>
           </View>
         </View>
 
-        <View style={styles.trendingBanner}>
-          <View style={styles.trendingTextCol}>
-            <Text style={styles.trendingBannerSub}>LIMITED TIME OFFER</Text>
-            <Text style={styles.trendingBannerHeading}>
+        <View className="bg-secondary/15 dark:bg-secondary/25 rounded-2xl p-4.5 mt-1 mb-4">
+          <View className="gap-1.5">
+            <Text className="text-[11px] font-extrabold tracking-wider text-secondary dark:text-secondary-light">
+              LIMITED TIME OFFER
+            </Text>
+            <Text className="text-lg font-extrabold text-text-primary dark:text-text-primary-dark">
               Save up to 40% on Premium Tech
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}
-              style={[
-                styles.shopNowBtn,
-                { backgroundColor: isDark ? '#2563EB' : '#0F172A' },
-              ]}
+              className="self-start px-3.5 py-2 rounded-xl mt-1.5 bg-primary dark:bg-primary-light"
             >
-              <Text style={styles.shopNowText}>Shop Deals</Text>
+              <Text className="font-bold text-xs text-white dark:text-primary-dark">
+                Shop Deals
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
     ),
-    [isDark, theme.primary]
+    [theme.primary]
   );
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { backgroundColor: isDark ? theme.background : '#F8FAFC' },
-      ]}
-    >
+    <View className="flex-1 bg-background dark:bg-background-dark">
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -167,13 +153,11 @@ export default function HomeScreen() {
         progressViewOffset={headerHeight}
         ListHeaderComponent={listHeader}
         ListFooterComponent={listFooter}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: headerHeight + 8,
-            paddingBottom: insets.bottom + 90,
-          },
-        ]}
+        contentContainerStyle={{
+          paddingHorizontal: 8,
+          paddingTop: headerHeight + 8,
+          paddingBottom: insets.bottom + 90,
+        }}
         onProductPress={(product) => {
           // Navigation / product detail handling
           router.push({
@@ -188,61 +172,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    marginTop: 4,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  trendingBanner: {
-    backgroundColor: '#DBEAFE',
-    borderRadius: 16,
-    padding: 18,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  trendingTextCol: {
-    gap: 6,
-  },
-  trendingBannerSub: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#1D4ED8',
-    letterSpacing: 0.5,
-  },
-  trendingBannerHeading: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#1E3A8A',
-  },
-  shopNowBtn: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginTop: 6,
-  },
-  shopNowText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-});

@@ -62,14 +62,14 @@ export function Tabs({
                 <View
                   className={`px-1.5 py-0.5 rounded-full ${
                     isActive
-                      ? 'bg-primary-light dark:bg-blue-900'
+                      ? 'bg-primary-light dark:bg-stone-900'
                       : 'bg-slate-200 dark:bg-slate-600'
                   }`}
                 >
                   <Text
                     className={`text-[10px] font-bold ${
                       isActive
-                        ? 'text-primary dark:text-blue-300'
+                        ? 'text-primary dark:text-[#E2B897]'
                         : 'text-text-secondary dark:text-slate-300'
                     }`}
                   >
@@ -118,7 +118,7 @@ export function Tabs({
             <Text
               className={`text-body font-semibold ${
                 isActive
-                  ? 'text-primary dark:text-blue-400'
+                  ? 'text-primary dark:text-[#E2B897]'
                   : 'text-text-secondary dark:text-slate-400'
               }`}
             >
@@ -129,14 +129,14 @@ export function Tabs({
               <View
                 className={`px-1.5 py-0.5 rounded-full ${
                   isActive
-                    ? 'bg-primary-light dark:bg-blue-900'
+                    ? 'bg-primary-light dark:bg-stone-900'
                     : 'bg-slate-100 dark:bg-slate-800'
                 }`}
               >
                 <Text
                   className={`text-[10px] font-bold ${
                     isActive
-                      ? 'text-primary dark:text-blue-300'
+                      ? 'text-primary dark:text-[#E2B897]'
                       : 'text-text-secondary dark:text-slate-300'
                   }`}
                 >

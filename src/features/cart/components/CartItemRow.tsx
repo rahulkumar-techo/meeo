@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useMemo, memo } from 'react';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Plus, Minus, Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import type { CartItem } from '../types/cart.types';
@@ -13,7 +13,7 @@ export interface CartItemRowProps {
   isUpdating?: boolean;
 }
 
-export function CartItemRow({
+export const CartItemRow = memo(function CartItemRow({
   item,
   onIncrement,
   onDecrement,
@@ -21,7 +21,7 @@ export function CartItemRow({
   currency = '₹',
   isUpdating = false,
 }: CartItemRowProps) {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   // 1. Resolve product image
   const imageUrl = useMemo(() => {
@@ -67,8 +67,8 @@ export function CartItemRow({
   const compareAtPrice = item.compareAtPrice
     ? Number(item.compareAtPrice)
     : item.variant?.compareAtPrice
-    ? Number(item.variant.compareAtPrice)
-    : null;
+      ? Number(item.variant.compareAtPrice)
+      : null;
   const lineTotal = Number(item.lineTotal ?? unitPrice * (item.quantity || 1));
 
   const formattedLineTotal = lineTotal.toLocaleString('en-IN', {
@@ -81,8 +81,8 @@ export function CartItemRow({
 
   const formattedComparePrice = compareAtPrice
     ? (compareAtPrice * (item.quantity || 1)).toLocaleString('en-IN', {
-        minimumFractionDigits: 0,
-      })
+      minimumFractionDigits: 0,
+    })
     : null;
 
   const discountPercent =
@@ -92,90 +92,67 @@ export function CartItemRow({
 
   return (
     <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-          borderColor: isDark ? '#334155' : '#E2E8F0',
-          opacity: isUpdating ? 0.85 : 1,
-        },
-      ]}
+      className={`rounded-2xl border border-border dark:border-border-dark bg-surface dark:bg-surface-dark px-3 py-2.5 flex-row items-center gap-3 shadow-sm ${isUpdating ? 'opacity-85' : 'opacity-100'
+        }`}
     >
-      {/* Top Section: Image, Info & Delete Button */}
-      <View style={styles.topRow}>
-        {/* Product Image Container */}
-        <View
-          style={[
-            styles.imageContainer,
-            { backgroundColor: isDark ? '#0F172A' : '#F8FAFC' },
-          ]}
-        >
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.image}
-            resizeMode="contain"
-          />
-        </View>
+      {/* Left: Product Image */}
+      <View className="w-[88px] h-[88px] rounded-xl overflow-hidden bg-surface-subtle dark:bg-surface-subtle-dark items-center justify-center p-1">
+        <Image
+          source={{ uri: imageUrl }}
+          className="w-full h-full"
+          resizeMode="contain"
+        />
+      </View>
 
-        {/* Product Info */}
-        <View style={styles.infoContainer}>
-          {/* Brand & Delete */}
-          <View style={styles.brandRow}>
+      {/* Right: Product Details, Price & Stepper */}
+      <View className="flex-1 h-[88px] justify-between">
+        {/* Top: Brand, Delete & Title */}
+        <View className="gap-0.5">
+          <View className="flex-row items-center justify-between">
             {brandName ? (
               <Text
-                style={[
-                  styles.brandText,
-                  { color: isDark ? '#94A3B8' : '#64748B' },
-                ]}
+                className="text-[10px] font-bold tracking-wider text-text-secondary dark:text-text-secondary-dark flex-1 mr-2"
                 numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {brandName.toUpperCase()}
               </Text>
-            ) : <View />}
+            ) : (
+              <View className="flex-1" />
+            )}
 
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onRemove}
               disabled={isUpdating}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={[styles.deleteBtn, isUpdating && { opacity: 0.4 }]}
+              className={`p-0.5 ${isUpdating ? 'opacity-40' : 'opacity-100'}`}
             >
-              <Trash2 size={16} color="#EF4444" />
+              <Trash2 size={15} color="#EF4444" />
             </TouchableOpacity>
           </View>
 
-          {/* Product Title */}
+          {/* Product Title (1-Line Truncated) */}
           <Text
-            style={[
-              styles.title,
-              { color: isDark ? '#F8FAFC' : '#0F172A' },
-            ]}
-            numberOfLines={2}
+            className="text-sm font-bold text-text-primary dark:text-text-primary-dark tracking-tight leading-[18px]"
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {item.product?.name || 'Product'}
           </Text>
 
           {/* Variant Attribute Badges */}
           {attributeBadges.length > 0 && (
-            <View style={styles.attributesContainer}>
-              {attributeBadges.map((badge, idx) => (
+            <View className="flex-row items-center gap-1 mt-0.5">
+              {attributeBadges.slice(0, 2).map((badge, idx) => (
                 <View
                   key={idx}
-                  style={[
-                    styles.attrBadge,
-                    {
-                      backgroundColor: isDark
-                        ? 'rgba(51, 65, 85, 0.7)'
-                        : '#F1F5F9',
-                      borderColor: isDark ? '#475569' : '#E2E8F0',
-                    },
-                  ]}
+                  className="px-1.5 py-0.5 rounded border border-border dark:border-border-dark bg-surface-subtle dark:bg-surface-subtle-dark max-w-[120px]"
                 >
                   <Text
-                    style={[
-                      styles.attrBadgeText,
-                      { color: isDark ? '#CBD5E1' : '#475569' },
-                    ]}
+                    className="text-[10px] font-semibold text-text-secondary dark:text-text-secondary-dark"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                   >
                     {badge.label}
                   </Text>
@@ -184,256 +161,68 @@ export function CartItemRow({
             </View>
           )}
 
-          {/* Stock Notice if Low Stock */}
+          {/* Low Stock Notice */}
           {item.stockInfo?.isLowStock && (
-            <Text style={styles.lowStockText}>
-              Only {item.stockInfo.availableStock} left in stock!
+            <Text
+              className="text-[10px] font-semibold text-amber-500"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              Only {item.stockInfo.availableStock} left!
             </Text>
           )}
         </View>
-      </View>
 
-      {/* Divider */}
-      <View
-        style={[
-          styles.divider,
-          { backgroundColor: isDark ? '#334155' : '#F1F5F9' },
-        ]}
-      />
-
-      {/* Bottom Section: Price & Quantity Stepper */}
-      <View style={styles.bottomRow}>
-        {/* Prices Block */}
-        <View style={styles.priceBlock}>
-          <View style={styles.priceMainRow}>
-            <Text
-              style={[
-                styles.totalPrice,
-                { color: isDark ? '#F8FAFC' : '#0F172A' },
-              ]}
-            >
+        {/* Bottom Row: Price & Quantity Stepper */}
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-base font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
               {currency}{formattedLineTotal}
             </Text>
 
             {formattedComparePrice && (
-              <Text style={styles.comparePrice}>
+              <Text className="text-xs text-text-muted dark:text-text-muted-dark line-through font-medium">
                 {currency}{formattedComparePrice}
               </Text>
             )}
 
             {discountPercent && (
-              <View style={styles.discountBadge}>
-                <Text style={styles.discountBadgeText}>
+              <View className="bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                <Text className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
                   {discountPercent}% OFF
                 </Text>
               </View>
             )}
           </View>
 
-          {item.quantity > 1 && (
-            <Text
-              style={[
-                styles.unitPriceText,
-                { color: isDark ? '#94A3B8' : '#64748B' },
-              ]}
+          {/* Quantity Stepper */}
+          <View className="flex-row items-center border border-border dark:border-border-dark rounded-xl bg-surface-subtle dark:bg-surface-subtle-dark h-7 px-1">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onDecrement}
+              disabled={isUpdating}
+              className={`w-[22px] h-[22px] items-center justify-center ${isUpdating ? 'opacity-30' : 'opacity-100'}`}
             >
-              {currency}{formattedUnitPrice} each
+              <Minus size={12} color={isDark ? '#FAF8F5' : '#2D2621'} />
+            </TouchableOpacity>
+
+            <Text className="text-xs font-bold text-text-primary dark:text-text-primary-dark px-1.5 min-w-[18px] text-center">
+              {item.quantity}
             </Text>
-          )}
-        </View>
 
-        {/* Quantity Stepper with Active Indicator */}
-        <View
-          style={[
-            styles.stepper,
-            {
-              backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
-              borderColor: isDark ? '#334155' : '#E2E8F0',
-            },
-          ]}
-        >
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onDecrement}
-            disabled={isUpdating}
-            style={[
-              styles.stepperBtn,
-              isUpdating && { opacity: 0.3 },
-            ]}
-          >
-            <Minus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
-          </TouchableOpacity>
-
-          <Text
-            style={[
-              styles.quantityText,
-              { color: isDark ? '#F8FAFC' : '#0F172A' },
-            ]}
-          >
-            {item.quantity}
-          </Text>
-
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onIncrement}
-            disabled={isUpdating}
-            style={[
-              styles.stepperBtn,
-              isUpdating && { opacity: 0.3 },
-            ]}
-          >
-            <Plus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onIncrement}
+              disabled={isUpdating}
+              className={`w-[22px] h-[22px] items-center justify-center ${isUpdating ? 'opacity-30' : 'opacity-100'}`}
+            >
+              <Plus size={12} color={isDark ? '#FAF8F5' : '#2D2621'} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
-    gap: 12,
-  },
-  topRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  imageContainer: {
-    width: 84,
-    height: 84,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 6,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  infoContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-    gap: 4,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  brandText: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-  },
-  deleteBtn: {
-    padding: 2,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 19,
-    letterSpacing: -0.2,
-  },
-  attributesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 2,
-  },
-  attrBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  attrBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  lowStockText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#F59E0B',
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    width: '100%',
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  priceBlock: {
-    gap: 2,
-  },
-  priceMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  totalPrice: {
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  comparePrice: {
-    fontSize: 13,
-    color: '#94A3B8',
-    textDecorationLine: 'line-through',
-    fontWeight: '500',
-  },
-  discountBadge: {
-    backgroundColor: 'rgba(22, 163, 74, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountBadgeText: {
-    color: '#16A34A',
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  unitPriceText: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 4,
-    height: 34,
-  },
-  stepperBtn: {
-    width: 28,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityText: {
-    fontSize: 13,
-    fontWeight: '700',
-    paddingHorizontal: 8,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  stepperLoadingWrapper: {
-    paddingHorizontal: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 });
 
 export default CartItemRow;

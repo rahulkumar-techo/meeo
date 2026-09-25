@@ -93,7 +93,7 @@ export function CartItemCard({
               activeOpacity={0.7}
               disabled={quantity <= 1}
               className={`w-7 h-7 items-center justify-center rounded-md bg-surface dark:bg-slate-800 ${
-                quantity <= 1 ? 'opacity-40' : 'active:bg-slate-200'
+                quantity <= 1 ? 'opacity-40' : ''
               }`}
             >
               <Minus size={13} color={isDark ? '#F8FAFC' : '#0F172A'} />
@@ -106,7 +106,7 @@ export function CartItemCard({
             <TouchableOpacity
               onPress={onIncrement}
               activeOpacity={0.7}
-              className="w-7 h-7 items-center justify-center rounded-md bg-surface dark:bg-slate-800 active:bg-slate-200"
+              className="w-7 h-7 items-center justify-center rounded-md bg-surface dark:bg-slate-800"
             >
               <Plus size={13} color={isDark ? '#F8FAFC' : '#0F172A'} />
             </TouchableOpacity>

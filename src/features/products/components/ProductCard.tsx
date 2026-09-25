@@ -114,7 +114,7 @@ export function ProductCard({
         className={`flex-row p-2 bg-transparent gap-3 ${className}`}
       >
         {/* Product Image */}
-        <View className="relative w-28 h-32 items-center justify-center rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800/60">
+        <View className="relative w-28 h-32 items-center justify-center rounded-xl overflow-hidden bg-[#F5EFEB] dark:bg-[#1C1714]">
           <Image
             source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
             style={styles.fullSize}
@@ -123,7 +123,7 @@ export function ProductCard({
           />
 
           {/* Rating overlay */}
-          <View className="absolute bottom-1.5 left-1.5 flex-row items-center bg-black/60 dark:bg-black/75 px-1.5 py-0.5 rounded-md gap-0.5">
+          <View className="absolute bottom-1.5 left-1.5 flex-row items-center bg-[#1A1614]/75 px-1.5 py-0.5 rounded-md gap-0.5">
             <Star size={10} color="#FBBF24" fill="#FBBF24" />
             <Text className="text-[10px] font-bold text-white">
               {rating.toFixed(1)}
@@ -134,7 +134,7 @@ export function ProductCard({
         {/* Product Details */}
         <View className="flex-1 justify-center py-1">
           {brand && (
-            <Text className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
+            <Text className="text-[11px] font-semibold uppercase tracking-wider text-[#786C64] dark:text-[#A89F97] mb-0.5">
               {brand}
             </Text>
           )}
@@ -142,18 +142,18 @@ export function ProductCard({
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-1"
+            className="text-base font-semibold text-[#2D2621] dark:text-[#FAF8F5] mb-1"
           >
             {title}
           </Text>
 
           <View className="flex-row items-center flex-wrap gap-1.5 mt-1">
-            <Text className="text-base font-bold text-slate-900 dark:text-slate-100">
+            <Text className="text-base font-bold text-[#2D2621] dark:text-[#FAF8F5]">
               {currency}{formattedPrice}
             </Text>
 
             {hasDiscount && formattedOriginalPrice && (
-              <Text className="text-xs text-slate-400 dark:text-slate-500 line-through">
+              <Text className="text-xs text-[#A89F97] dark:text-[#786C64] line-through">
                 {currency}{formattedOriginalPrice}
               </Text>
             )}
@@ -175,7 +175,7 @@ export function ProductCard({
           >
             <Heart
               size={18}
-              color={isWishlisted ? '#EF4444' : isDark ? '#94A3B8' : '#64748B'}
+              color={isWishlisted ? '#EF4444' : isDark ? '#A89F97' : '#786C64'}
               fill={isWishlisted ? '#EF4444' : 'transparent'}
             />
           </TouchableOpacity>
@@ -191,7 +191,7 @@ export function ProductCard({
       className={`bg-transparent overflow-hidden ${className}`}
     >
       {/* Product Image Container */}
-      <View className="relative w-full aspect-[1/1.12] items-center justify-center rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800/60">
+      <View className="relative w-full aspect-[1/1.12] items-center justify-center rounded-2xl overflow-hidden bg-[#F5EFEB] dark:bg-[#1C1714]">
         <Image
           source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
           style={styles.fullSize}
@@ -201,8 +201,8 @@ export function ProductCard({
 
         {/* Top Badges (e.g. Featured / Tag) */}
         {tag && (
-          <View className="absolute top-2 left-2 bg-slate-900/80 dark:bg-white/90 px-2 py-0.5 rounded-full">
-            <Text className="text-[10px] font-bold uppercase tracking-wider text-white dark:text-slate-900">
+          <View className="absolute top-2 left-2 bg-[#2D2621]/90 dark:bg-[#FAF8F5]/90 px-2 py-0.5 rounded-full">
+            <Text className="text-[10px] font-bold uppercase tracking-wider text-[#FAF8F5] dark:text-[#2D2621]">
               {tag}
             </Text>
           </View>
@@ -213,18 +213,18 @@ export function ProductCard({
           <TouchableOpacity
             onPress={onWishlistToggle}
             activeOpacity={0.8}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/70 dark:bg-slate-900/70 items-center justify-center shadow-xs"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#FAF8F5]/85 dark:bg-[#1A1614]/85 items-center justify-center shadow-xs"
           >
             <Heart
               size={15}
-              color={isWishlisted ? '#EF4444' : isDark ? '#E2E8F0' : '#475569'}
+              color={isWishlisted ? '#EF4444' : isDark ? '#E2B897' : '#2D2621'}
               fill={isWishlisted ? '#EF4444' : 'transparent'}
             />
           </TouchableOpacity>
         )}
 
         {/* Rating Overlay on bottom-left inside image */}
-        <View className="absolute bottom-2 left-2 flex-row items-center bg-black/60 dark:bg-black/75 px-1.5 py-0.5 rounded-md gap-1">
+        <View className="absolute bottom-2 left-2 flex-row items-center bg-[#1A1614]/75 px-1.5 py-0.5 rounded-md gap-1">
           <Star size={10} color="#FBBF24" fill="#FBBF24" />
           <Text className="text-[11px] font-bold text-white leading-none">
             {rating.toFixed(1)}
@@ -241,7 +241,7 @@ export function ProductCard({
       <View className="pt-2 pb-1 px-1">
         {/* Brand */}
         {brand && (
-          <Text className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
+          <Text className="text-[11px] font-semibold uppercase tracking-wider text-[#786C64] dark:text-[#A89F97] mb-0.5">
             {brand}
           </Text>
         )}
@@ -250,19 +250,19 @@ export function ProductCard({
         <Text
           numberOfLines={1}
           ellipsizeMode="tail"
-          className="text-sm font-semibold text-slate-900 dark:text-slate-100"
+          className="text-sm font-semibold text-[#2D2621] dark:text-[#FAF8F5]"
         >
           {title}
         </Text>
 
         {/* Price & Discount Row */}
         <View className="flex-row items-center flex-wrap gap-1.5 mt-1.5">
-          <Text className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          <Text className="text-base font-bold text-[#2D2621] dark:text-[#FAF8F5] tracking-tight">
             {currency}{formattedPrice}
           </Text>
 
           {hasDiscount && formattedOriginalPrice && (
-            <Text className="text-xs text-slate-400 dark:text-slate-500 line-through">
+            <Text className="text-xs text-[#A89F97] dark:text-[#786C64] line-through">
               {currency}{formattedOriginalPrice}
             </Text>
           )}

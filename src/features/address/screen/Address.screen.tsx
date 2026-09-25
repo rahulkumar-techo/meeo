@@ -22,6 +22,7 @@ import {
   Navigation,
 } from 'lucide-react-native';
 import { Screen } from '@/components/layout';
+import { Button } from '@/components/ui';
 import { useTheme } from '@/theme';
 import {
   useGetAddresses,
@@ -268,16 +269,16 @@ export function AddressScreen() {
         </Text>
 
         {!isFormView ? (
-          <TouchableOpacity
-            activeOpacity={0.8}
+          <Button
+            variant="dark"
+            size="xs"
+            rounded="full"
             onPress={handleStartCreate}
-            className="flex-row items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#2D2621] dark:bg-white active:opacity-90"
+            leftIcon={<Plus size={14} color={isDark ? '#0F172A' : '#FFFFFF'} />}
+            className="px-3"
           >
-            <Plus size={15} color={isDark ? '#0F172A' : '#FFFFFF'} />
-            <Text className="text-xs font-bold text-white dark:text-slate-900">
-              Add
-            </Text>
-          </TouchableOpacity>
+            Add
+          </Button>
         ) : (
           <View className="w-10" />
         )}
@@ -624,25 +625,19 @@ export function AddressScreen() {
             </TouchableOpacity>
 
             {/* Save Address CTA */}
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <Button
+              variant="dark"
+              size="lg"
+              rounded="2xl"
+              fullWidth
               disabled={isSaving}
+              isLoading={isSaving}
+              loadingText="Saving..."
               onPress={handleSave}
-              className={`w-full py-3.5 rounded-2xl items-center justify-center mt-2 bg-[#2D2621] dark:bg-white active:bg-[#1A1614] ${
-                isSaving ? 'opacity-70' : 'opacity-100'
-              }`}
+              className="mt-2"
             >
-              {isSaving ? (
-                <ActivityIndicator
-                  color={isDark ? '#0F172A' : '#FFFFFF'}
-                  size="small"
-                />
-              ) : (
-                <Text className="text-sm font-bold text-white dark:text-slate-950">
-                  {editingAddressId ? 'Save Changes' : 'Save Address'}
-                </Text>
-              )}
-            </TouchableOpacity>
+              {editingAddressId ? 'Save Changes' : 'Save Address'}
+            </Button>
           </View>
         ) : (
           /* LIST VIEW */
@@ -666,16 +661,16 @@ export function AddressScreen() {
                 <Text className="text-xs text-center text-slate-500 dark:text-slate-400 max-w-[240px]">
                   Add your home or office address for fast delivery.
                 </Text>
-                <TouchableOpacity
-                  activeOpacity={0.85}
+                <Button
+                  variant="dark"
+                  size="sm"
+                  rounded="xl"
                   onPress={handleStartCreate}
-                  className="flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2D2621] dark:bg-white mt-1"
+                  leftIcon={<Plus size={15} color={isDark ? '#0F172A' : '#FFFFFF'} />}
+                  className="mt-1"
                 >
-                  <Plus size={15} color={isDark ? '#0F172A' : '#FFFFFF'} />
-                  <Text className="text-xs font-bold text-white dark:text-slate-900">
-                    Add Address
-                  </Text>
-                </TouchableOpacity>
+                  Add Address
+                </Button>
               </View>
             ) : (
               addressList.map((addr) => (

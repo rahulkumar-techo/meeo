@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Plus, CheckCircle2, Circle, Edit3, Trash2, MapPin } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { Button } from '@/components/ui';
 import { useGetAddresses, useDeleteAddress } from '@/features/address';
 import type { UserAddress } from '@/features/address/validations/address.validation';
 
@@ -84,16 +85,16 @@ export function CheckoutAddressStep({
         <Text className="text-base font-bold text-slate-900 dark:text-white">
           Select Delivery Address
         </Text>
-        <TouchableOpacity
-          activeOpacity={0.8}
+        <Button
+          variant="outline"
+          size="xs"
+          rounded="full"
           onPress={handleAddNew}
-          className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#2D2621] dark:border-white"
+          leftIcon={<Plus size={13} color={isDark ? '#FFFFFF' : '#2D2621'} />}
+          className="border-[#2D2621] dark:border-white px-3"
         >
-          <Plus size={14} color={isDark ? '#FFFFFF' : '#2D2621'} />
-          <Text className="text-xs font-bold text-[#2D2621] dark:text-white">
-            Add New
-          </Text>
-        </TouchableOpacity>
+          Add New
+        </Button>
       </View>
 
       {/* Loading state */}
@@ -117,16 +118,16 @@ export function CheckoutAddressStep({
           <Text className="text-xs text-center text-slate-500 dark:text-slate-400 max-w-[240px]">
             Please add a delivery address to continue checkout.
           </Text>
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <Button
+            variant="dark"
+            size="sm"
+            rounded="xl"
             onPress={handleAddNew}
-            className="flex-row items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2D2621] dark:bg-white mt-1"
+            leftIcon={<Plus size={15} color={isDark ? '#0F172A' : '#FFFFFF'} />}
+            className="mt-1"
           >
-            <Plus size={15} color={isDark ? '#0F172A' : '#FFFFFF'} />
-            <Text className="text-xs font-bold text-white dark:text-slate-900">
-              Add Delivery Address
-            </Text>
-          </TouchableOpacity>
+            Add Delivery Address
+          </Button>
         </View>
       ) : (
         /* Address List */
@@ -145,7 +146,7 @@ export function CheckoutAddressStep({
                 onPress={() => onSelectAddress(addr)}
                 className={`border rounded-2xl p-4 gap-2 ${
                   isSelected
-                    ? 'bg-blue-50/60 dark:bg-blue-950/40 border-[#2D2621] dark:border-white'
+                    ? 'bg-primary-light/70 dark:bg-stone-900 border-[#2D2621] dark:border-[#E2B897]'
                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
                 }`}
               >
@@ -154,7 +155,7 @@ export function CheckoutAddressStep({
                     {isSelected ? (
                       <CheckCircle2
                         size={19}
-                        color={isDark ? '#60A5FA' : '#2D2621'}
+                        color={isDark ? '#E2B897' : '#2D2621'}
                       />
                     ) : (
                       <Circle
@@ -227,18 +228,16 @@ export function CheckoutAddressStep({
       {/* Deliver to this address CTA Button */}
       {addressList.length > 0 && (
         <View className="pt-2 pb-4">
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <Button
+            variant="dark"
+            size="lg"
+            rounded="2xl"
+            fullWidth
             disabled={!selectedAddress}
             onPress={onProceed}
-            className={`w-full py-3.5 rounded-2xl items-center justify-center bg-[#2D2621] dark:bg-white active:bg-[#1A1614] ${
-              selectedAddress ? 'opacity-100' : 'opacity-60'
-            }`}
           >
-            <Text className="text-sm font-bold text-white dark:text-slate-950">
-              Deliver to this Address
-            </Text>
-          </TouchableOpacity>
+            Deliver to this Address
+          </Button>
         </View>
       )}
     </View>

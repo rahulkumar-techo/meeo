@@ -141,7 +141,8 @@ export default function VerifyOtpScreen() {
             <Button
               fullWidth
               size="lg"
-              variant="primary"
+              variant="dark"
+              rounded="xl"
               onPress={() => {
                 if (isResetFlow) {
                   router.push({
@@ -155,11 +156,8 @@ export default function VerifyOtpScreen() {
                   router.replace(AppRoute.signIn as any);
                 }
               }}
-              className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
             >
-              <Text className="text-sm font-bold text-white dark:text-slate-950">
-                {isResetFlow ? 'Create New Password' : 'Sign In to Meeo'}
-              </Text>
+              {isResetFlow ? 'Create New Password' : 'Sign In to Meeo'}
             </Button>
           </View>
         </View>
@@ -226,14 +224,14 @@ export default function VerifyOtpScreen() {
           <Button
             fullWidth
             size="lg"
-            variant="primary"
+            variant="dark"
+            rounded="xl"
             isLoading={isSubmitting}
+            loadingText="Verifying Code..."
             onPress={handleSubmit(onSubmit)}
-            className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0 mt-2"
+            className="mt-2"
           >
-            <Text className="text-sm font-bold text-white dark:text-slate-950">
-              Verify Code
-            </Text>
+            Verify Code
           </Button>
 
           {/* Resend OTP */}

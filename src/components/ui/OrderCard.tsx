@@ -41,7 +41,7 @@ export function OrderCard({
     in_transit: {
       label: 'In Transit',
       variant: 'primary',
-      icon: <Truck size={12} color="#2563EB" />,
+      icon: <Truck size={12} color="#8C5338" />,
     },
     processing: {
       label: 'Processing',

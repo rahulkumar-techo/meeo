@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { CheckCircle2, ShoppingBag, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { Button } from '@/components/ui';
 
 export interface OrderSuccessModalProps {
   visible: boolean;
@@ -58,30 +59,28 @@ export function OrderSuccessModal({
 
           {/* Action Buttons */}
           <View className="w-full gap-2.5 mt-3">
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <Button
+              variant="dark"
+              size="lg"
+              rounded="2xl"
+              fullWidth
               onPress={handleViewOrders}
-              className="flex-row items-center justify-center gap-2 py-3.5 rounded-2xl w-full bg-[#2D2621] dark:bg-white active:bg-[#1A1614]"
+              rightIcon={<ArrowRight size={16} color={isDark ? '#0F172A' : '#FFFFFF'} />}
             >
-              <Text className="text-sm font-bold text-white dark:text-slate-950">
-                View My Orders
-              </Text>
-              <ArrowRight size={16} color={isDark ? '#0F172A' : '#FFFFFF'} />
-            </TouchableOpacity>
+              View My Orders
+            </Button>
 
-            <TouchableOpacity
-              activeOpacity={0.7}
+            <Button
+              variant="ghost"
+              size="md"
+              rounded="xl"
+              fullWidth
               onPress={handleGoHome}
-              className="flex-row items-center justify-center gap-1.5 py-2.5"
+              leftIcon={<ShoppingBag size={16} color={isDark ? '#CBD5E1' : '#475569'} />}
+              textClassName="text-slate-600 dark:text-slate-300 font-semibold"
             >
-              <ShoppingBag
-                size={15}
-                color={isDark ? '#CBD5E1' : '#475569'}
-              />
-              <Text className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Continue Shopping
-              </Text>
-            </TouchableOpacity>
+              Continue Shopping
+            </Button>
           </View>
         </View>
       </View>

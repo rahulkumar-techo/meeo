@@ -1,32 +1,34 @@
 import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { palette } from '@/theme/colors';
 
 interface Props {
   isDark?: boolean;
 }
 
 export const HeaderGradient = memo(({ isDark = false }: Props) => {
-  // Solid luxury blue colors (100% opaque, no transparency)
+  // Warm luxury espresso, coffee, mocha & terracotta blend for light mode
   const lightColors = [
-    '#1E3A8A', // Deep sapphire blue
-    '#3730A3', // Rich indigo
-    '#4F46E5', // Vibrant indigo
-    '#6366F1', // Soft royal blue
+    palette.primaryDark, // #1A1614 (Deep Roast Espresso)
+    palette.primary,     // #2D2621 (Warm Coffee Charcoal)
+    '#4A3B32',           // #4A3B32 (Rich Mocha)
+    palette.secondary,   // #8C5338 (Terracotta Chestnut)
   ] as const;
 
+  // Ultra-deep luxury dark espresso & warm charcoal blend for dark mode
   const darkColors = [
-    '#0B1120', // Deep navy
-    '#111827', // Charcoal navy
-    '#1E1B4B', // Deep indigo
-    '#312E81', // Dark violet
+    palette.slate[950],  // #120F0D (Deepest Espresso Dark)
+    palette.slate[900],  // #1C1714 (Dark Roast)
+    '#28221E',           // #28221E (Mocha Surface Dark)
+    '#3D342E',           // #3D342E (Warm Coffee Undertone)
   ] as const;
 
   return (
     <View
       style={[
         StyleSheet.absoluteFill,
-        { backgroundColor: isDark ? '#0B1120' : '#1E3A8A' },
+        { backgroundColor: isDark ? palette.slate[950] : palette.primaryDark },
       ]}
       pointerEvents="none"
     >
@@ -42,4 +44,3 @@ export const HeaderGradient = memo(({ isDark = false }: Props) => {
 });
 
 export default HeaderGradient;
-

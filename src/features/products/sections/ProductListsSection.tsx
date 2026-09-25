@@ -66,10 +66,9 @@ export function ProductListsSection({
     isError,
     error,
     refetch,
-    isRefetching,
   } = useGetAllProducts(params);
 
-  const isRefreshing = externalRefreshing ?? (isRefetching || internalRefreshing);
+  const isRefreshing = externalRefreshing ?? internalRefreshing;
 
   // Handle pull-to-refresh
   const handleRefresh = useCallback(async () => {
@@ -124,13 +123,7 @@ export function ProductListsSection({
   const renderProductItem = useCallback(
     ({ item, index }: { item: Product; index: number }) => (
       <View
-        style={[
-          styles.productCol,
-          {
-            paddingLeft: index % 2 === 0 ? 0 : 6,
-            paddingRight: index % 2 === 0 ? 6 : 0,
-          },
-        ]}
+        className={`flex-1 mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
       >
         <ProductCard
           product={item}
@@ -145,19 +138,16 @@ export function ProductListsSection({
   // Initial loading skeleton grid
   if (isLoading && products.length === 0) {
     return (
-      <View style={[styles.container, contentContainerStyle]}>
+      <View
+        className="flex-1 bg-background dark:bg-background-dark"
+        style={contentContainerStyle}
+      >
         {ListHeaderComponent}
-        <View style={styles.skeletonGrid}>
+        <View className="flex-row flex-wrap mt-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <View
               key={index}
-              style={[
-                styles.productCol,
-                {
-                  paddingLeft: index % 2 === 0 ? 0 : 6,
-                  paddingRight: index % 2 === 0 ? 6 : 0,
-                },
-              ]}
+              className={`flex-1 mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
             >
               <SkeletonProductCard />
             </View>
@@ -170,7 +160,10 @@ export function ProductListsSection({
   // Error state with retry
   if (isError && products.length === 0) {
     return (
-      <View style={[styles.container, contentContainerStyle]}>
+      <View
+        className="flex-1 bg-background dark:bg-background-dark"
+        style={contentContainerStyle}
+      >
         {ListHeaderComponent}
         <ErrorState
           title="Could not load products"
@@ -185,7 +178,10 @@ export function ProductListsSection({
   // Empty state when no items found
   if (!isLoading && products.length === 0) {
     return (
-      <View style={[styles.container, contentContainerStyle]}>
+      <View
+        className="flex-1 bg-background dark:bg-background-dark"
+        style={contentContainerStyle}
+      >
         {ListHeaderComponent}
         <EmptyState
           title="No Products Found"
@@ -198,45 +194,32 @@ export function ProductListsSection({
   }
 
   return (
-    <AnimatedFlashList
-      data={products}
-      keyExtractor={keyExtractor}
-      renderItem={renderProductItem}
-      estimatedItemSize={estimatedItemSize}
-      numColumns={numColumns}
-      ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={ListFooterComponent}
-      onScroll={onScroll}
-      scrollEventThrottle={scrollEventThrottle}
-      showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-      contentContainerStyle={contentContainerStyle}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          progressViewOffset={progressViewOffset}
-          tintColor={theme.primary}
-          colors={[theme.primary]}
-          progressBackgroundColor={isDark ? '#1E293B' : '#FFFFFF'}
-        />
-      }
-    />
+    <View className="flex-1 bg-background dark:bg-background-dark">
+      <AnimatedFlashList
+        data={products}
+        keyExtractor={keyExtractor}
+        renderItem={renderProductItem}
+        estimatedItemSize={estimatedItemSize}
+        numColumns={numColumns}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
+        contentContainerStyle={contentContainerStyle}
+        onScroll={onScroll}
+        scrollEventThrottle={scrollEventThrottle}
+        showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            progressViewOffset={progressViewOffset}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+            progressBackgroundColor={isDark ? '#28221E' : '#FAF7F2'}
+          />
+        }
+      />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  productCol: {
-    flex: 1,
-    marginBottom: 12,
-  },
-  skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 12,
-  },
-});
 
 export default ProductListsSection;

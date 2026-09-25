@@ -23,6 +23,7 @@ import { useValidateCheckout } from '../hooks/checkout.hook';
 import { useRazorpayPayment } from '../hooks/razorpay.hook';
 import { useGetCart, CART_QUERY_KEYS } from '@/features/cart';
 import { queryClient } from '@/apis/query-client';
+import { Button } from '@/components/ui';
 import type { UserAddress } from '@/features/address/validations/address.validation';
 import type { PaymentMethod } from '../types/checkout.types';
 
@@ -164,7 +165,7 @@ export function CheckoutPaymentStep({
           onPress={() => setPaymentMethod('UPI')}
           className={`border rounded-2xl p-4 ${
             paymentMethod === 'UPI'
-              ? 'bg-blue-50/60 dark:bg-blue-950/40 border-[#2D2621] dark:border-white'
+              ? 'bg-primary-light/70 dark:bg-stone-900 border-[#2D2621] dark:border-[#E2B897]'
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
           }`}
         >
@@ -172,13 +173,13 @@ export function CheckoutPaymentStep({
             {paymentMethod === 'UPI' ? (
               <CheckCircle2
                 size={20}
-                color={isDark ? '#60A5FA' : '#2D2621'}
+                color={isDark ? '#E2B897' : '#2D2621'}
               />
             ) : (
               <Circle size={20} color={isDark ? '#64748B' : '#94A3B8'} />
             )}
-            <View className="w-10 h-10 rounded-xl items-center justify-center bg-blue-100 dark:bg-blue-900/40">
-              <Smartphone size={20} color={isDark ? '#93C5FD' : '#2563EB'} />
+            <View className="w-10 h-10 rounded-xl items-center justify-center bg-primary-light/80 dark:bg-stone-800">
+              <Smartphone size={20} color={isDark ? '#E2B897' : '#2D2621'} />
             </View>
             <View className="flex-1 gap-0.5">
               <View className="flex-row items-center gap-1.5">
@@ -205,7 +206,7 @@ export function CheckoutPaymentStep({
           onPress={() => setPaymentMethod('COD')}
           className={`border rounded-2xl p-4 ${
             paymentMethod === 'COD'
-              ? 'bg-blue-50/60 dark:bg-blue-950/40 border-[#2D2621] dark:border-white'
+              ? 'bg-primary-light/70 dark:bg-stone-900 border-[#2D2621] dark:border-[#E2B897]'
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
           }`}
         >
@@ -213,7 +214,7 @@ export function CheckoutPaymentStep({
             {paymentMethod === 'COD' ? (
               <CheckCircle2
                 size={20}
-                color={isDark ? '#60A5FA' : '#2D2621'}
+                color={isDark ? '#E2B897' : '#2D2621'}
               />
             ) : (
               <Circle size={20} color={isDark ? '#64748B' : '#94A3B8'} />
@@ -262,30 +263,17 @@ export function CheckoutPaymentStep({
           </Text>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          disabled={isProcessing}
+        <Button
+          variant="dark"
+          size="md"
+          rounded="2xl"
+          isLoading={isProcessing}
+          loadingText={processingStage || 'Processing...'}
           onPress={handlePay}
-          className={`px-6 py-3 rounded-2xl items-center justify-center bg-[#2D2621] dark:bg-white active:bg-[#1A1614] min-w-[180px] ${
-            isProcessing ? 'opacity-70' : 'opacity-100'
-          }`}
+          className="min-w-[180px] px-6"
         >
-          {isProcessing ? (
-            <View className="flex-row items-center gap-2">
-              <ActivityIndicator
-                color={isDark ? '#0F172A' : '#FFFFFF'}
-                size="small"
-              />
-              <Text className="text-xs font-bold text-white dark:text-slate-950">
-                {processingStage || 'Processing...'}
-              </Text>
-            </View>
-          ) : (
-            <Text className="text-sm font-bold text-white dark:text-slate-950">
-              {paymentMethod === 'COD' ? 'Place Order (COD)' : 'Pay with Razorpay'}
-            </Text>
-          )}
-        </TouchableOpacity>
+          {paymentMethod === 'COD' ? 'Place Order (COD)' : 'Pay with Razorpay'}
+        </Button>
       </View>
     </View>
   );

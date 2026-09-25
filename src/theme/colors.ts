@@ -1,19 +1,19 @@
 /**
  * Meeo Design System - Color Tokens
- * Clean, premium, minimal e-commerce palette with full light & dark mode support.
+ * Premium, warm luxury espresso & terracotta e-commerce palette with full light & dark mode support.
  */
 
 export const palette = {
-  // Brand Primary
-  primary: '#2563EB',
-  primaryDark: '#1D4ED8',
-  primaryLight: '#DBEAFE',
+  // Brand Primary (Warm Espresso / Deep Coffee)
+  primary: '#2D2621',
+  primaryDark: '#1A1614',
+  primaryLight: '#F5EBE6',
 
-  // Secondary & Accent
-  secondary: '#7C3AED',
-  secondaryLight: '#EDE9FE',
-  accent: '#F59E0B',
-  accentLight: '#FEF3C7',
+  // Secondary & Accent (Terracotta & Warm Bronze Gold)
+  secondary: '#8C5338',
+  secondaryLight: '#F9EFEA',
+  accent: '#C27838',
+  accentLight: '#FDF3E7',
 
   // Status & Feedback
   success: '#16A34A',
@@ -22,22 +22,22 @@ export const palette = {
   warningLight: '#FEF3C7',
   error: '#DC2626',
   errorLight: '#FEE2E2',
-  info: '#0284C7',
-  infoLight: '#E0F2FE',
+  info: '#8C5338',
+  infoLight: '#F9EFEA',
 
-  // Neutral Scales (Slate)
+  // Warm Neutral Scales (Warm Stone / Taupe)
   slate: {
-    50: '#F8FAFC',
-    100: '#F1F5F9',
-    200: '#E2E8F0',
-    300: '#CBD5E1',
-    400: '#94A3B8',
-    500: '#64748B',
-    600: '#475569',
-    700: '#334155',
-    800: '#1E293B',
-    900: '#0F172A',
-    950: '#0B0F17',
+    50: '#FAF8F5',
+    100: '#F3EFEA',
+    200: '#E8E2DA',
+    300: '#D5CDC4',
+    400: '#A89F97',
+    500: '#786C64',
+    600: '#5A5049',
+    700: '#3D352F',
+    800: '#28221E',
+    900: '#1C1714',
+    950: '#120F0D',
   },
 
   // Pure
@@ -64,68 +64,68 @@ export const lightColors = {
   infoLight: palette.infoLight,
 
   // Semantic surfaces & backgrounds
-  background: '#F8FAFC',
+  background: '#FAF8F5',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
-  surfaceSubtle: '#F1F5F9',
+  surfaceSubtle: '#F3EFEA',
 
   // Semantic typography
-  textPrimary: '#0F172A',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
+  textPrimary: '#2D2621',
+  textSecondary: '#786C64',
+  textMuted: '#A89F97',
   textInverse: '#FFFFFF',
 
   // Semantic borders & controls
-  border: '#E2E8F0',
+  border: '#E8E2DA',
   borderFocus: palette.primary,
-  disabled: '#CBD5E1',
-  disabledText: '#94A3B8',
-  disabledBackground: '#F1F5F9',
+  disabled: '#D5CDC4',
+  disabledText: '#A89F97',
+  disabledBackground: '#F3EFEA',
 
   // Overlays
-  backdrop: 'rgba(15, 23, 42, 0.6)',
-  cardShadow: 'rgba(15, 23, 42, 0.06)',
+  backdrop: 'rgba(45, 38, 33, 0.65)',
+  cardShadow: 'rgba(45, 38, 33, 0.08)',
 } as const;
 
 export const darkColors = {
-  primary: '#3B82F6', // slightly lighter for dark mode readability
-  primaryDark: palette.primary,
-  primaryLight: '#1E3A8A',
-  secondary: '#8B5CF6',
-  secondaryLight: '#3B1F6E',
-  accent: '#FBBF24',
-  accentLight: '#78350F',
+  primary: '#E2B897', // Warm Cashmere / Almond Gold in dark mode for readability
+  primaryDark: '#C27838',
+  primaryLight: '#3A2E26',
+  secondary: '#D98A6C',
+  secondaryLight: '#42281D',
+  accent: '#E5A663',
+  accentLight: '#4A3219',
   success: '#22C55E',
   successLight: '#14532D',
   warning: '#F59E0B',
   warningLight: '#78350F',
   error: '#EF4444',
   errorLight: '#7F1D1D',
-  info: '#38BDF8',
-  infoLight: '#0C4A6E',
+  info: '#D98A6C',
+  infoLight: '#42281D',
 
   // Semantic surfaces & backgrounds
-  background: '#0B0F17',
-  surface: '#161F30',
-  surfaceElevated: '#1E293B',
-  surfaceSubtle: '#111827',
+  background: '#120F0D',
+  surface: '#1C1714',
+  surfaceElevated: '#28221E',
+  surfaceSubtle: '#181411',
 
   // Semantic typography
-  textPrimary: '#F8FAFC',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  textInverse: '#0F172A',
+  textPrimary: '#FAF8F5',
+  textSecondary: '#A89F97',
+  textMuted: '#786C64',
+  textInverse: '#2D2621',
 
   // Semantic borders & controls
-  border: '#1E293B',
-  borderFocus: '#3B82F6',
-  disabled: '#334155',
-  disabledText: '#64748B',
-  disabledBackground: '#1E293B',
+  border: '#2E2620',
+  borderFocus: '#E2B897',
+  disabled: '#3D352F',
+  disabledText: '#786C64',
+  disabledBackground: '#1C1714',
 
   // Overlays
-  backdrop: 'rgba(0, 0, 0, 0.75)',
-  cardShadow: 'rgba(0, 0, 0, 0.35)',
+  backdrop: 'rgba(0, 0, 0, 0.8)',
+  cardShadow: 'rgba(0, 0, 0, 0.5)',
 } as const;
 
 export type ColorTheme = {

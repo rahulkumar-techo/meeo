@@ -29,7 +29,8 @@ const DEV_GRAPHQL_URL =
   PROD_GRAPHQL_URL;
 
 // Active endpoints based on current environment
-export const BASE_URL = isDevelopment ? DEV_BASE_URL : PROD_BASE_URL;
+// export const BASE_URL = isDevelopment ? DEV_BASE_URL : PROD_BASE_URL;
+export const BASE_URL = "https://meeo-server.onrender.com/api/v1"
 export const GRAPHQL_URL = isDevelopment ? DEV_GRAPHQL_URL : PROD_GRAPHQL_URL;
 
 export const getBaseUrl = (): string => BASE_URL;

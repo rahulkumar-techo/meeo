@@ -88,9 +88,9 @@ export function Header({
           <TouchableOpacity
             onPress={onCartPress}
             activeOpacity={0.7}
-            className="relative w-10 h-10 rounded-full bg-primary-light/60 dark:bg-blue-950/60 items-center justify-center"
+            className="relative w-10 h-10 rounded-full bg-primary-light/80 dark:bg-stone-900 items-center justify-center"
           >
-            <ShoppingBag size={18} color="#2563EB" />
+            <ShoppingBag size={18} color="#2D2621" />
             {cartCount > 0 && (
               <View className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary items-center justify-center">
                 <Text className="text-[10px] font-bold text-white">

@@ -105,8 +105,8 @@ export function ProductCard({
 
             <TouchableOpacity
               onPress={onAddToCart}
-              activeOpacity={0.8}
-              className="w-8 h-8 rounded-full bg-primary items-center justify-center active:scale-95"
+              activeOpacity={0.7}
+              className="w-8 h-8 rounded-full bg-primary items-center justify-center shadow-xs"
             >
               <Plus size={16} color="#FFFFFF" />
             </TouchableOpacity>
@@ -185,8 +185,8 @@ export function ProductCard({
 
           <TouchableOpacity
             onPress={onAddToCart}
-            activeOpacity={0.8}
-            className="w-9 h-9 rounded-lg bg-primary items-center justify-center active:scale-95 shadow-sm"
+            activeOpacity={0.7}
+            className="w-9 h-9 rounded-lg bg-primary items-center justify-center shadow-xs"
           >
             <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
           </TouchableOpacity>

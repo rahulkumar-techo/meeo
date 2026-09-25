@@ -30,11 +30,11 @@ export function ErrorState({
         <AlertCircle size={32} color="#DC2626" />
       </View>
 
-      <Text className="text-h3 font-bold text-text-primary dark:text-slate-100 text-center mb-1.5">
+      <Text className="text-lg font-bold text-text-primary dark:text-text-primary-dark text-center mb-1.5 tracking-tight">
         {title}
       </Text>
 
-      <Text className="text-body-sm text-text-secondary dark:text-slate-400 text-center mb-6 max-w-[280px]">
+      <Text className="text-sm text-text-secondary dark:text-text-secondary-dark text-center mb-6 max-w-[280px] leading-5">
         {message}
       </Text>
 
@@ -52,3 +52,5 @@ export function ErrorState({
     </View>
   );
 }
+
+export default ErrorState;

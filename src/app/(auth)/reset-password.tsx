@@ -88,13 +88,11 @@ export default function ResetPasswordScreen() {
             <Button
               fullWidth
               size="lg"
-              variant="primary"
+              variant="dark"
+              rounded="xl"
               onPress={() => router.replace(AppRoute.signIn as any)}
-              className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
             >
-              <Text className="text-sm font-bold text-white dark:text-slate-950">
-                Back to Sign In
-              </Text>
+              Back to Sign In
             </Button>
           </View>
         </View>
@@ -185,14 +183,14 @@ export default function ResetPasswordScreen() {
           <Button
             fullWidth
             size="lg"
-            variant="primary"
+            variant="dark"
+            rounded="xl"
             isLoading={resetPasswordMutation.isPending}
+            loadingText="Resetting Password..."
             onPress={handleSubmit(onSubmit)}
-            className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0 mt-2"
+            className="mt-2"
           >
-            <Text className="text-sm font-bold text-white dark:text-slate-950">
-              Reset Password
-            </Text>
+            Reset Password
           </Button>
         </View>
       </View>

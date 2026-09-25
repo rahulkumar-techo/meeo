@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShoppingCart, ShoppingBag, Plus, Minus } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { Button } from '@/components/ui';
 
 export interface ProductBottomBarProps {
   price: number;
@@ -109,51 +110,32 @@ export function ProductBottomBar({
 
       {/* Bottom Row: Full-width Action Buttons */}
       <View style={styles.actionButtonsRow}>
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <Button
+          variant="outline"
+          size="lg"
+          rounded="xl"
           onPress={onAddToCart}
           disabled={isAddingToCart}
-          style={[
-            styles.cartBtn,
-            {
-              borderColor: theme.primary,
-              backgroundColor: isDark ? '#1E293B' : '#EFF6FF',
-              opacity: isAddingToCart ? 0.8 : 1,
-            },
-          ]}
+          isLoading={isAddingToCart}
+          loadingText="Adding to Bag..."
+          leftIcon={!isAddingToCart ? <ShoppingCart size={18} color={theme.primary} /> : undefined}
+          className="flex-1 border-primary bg-primary-light/70 dark:bg-stone-900"
+          textClassName="text-primary dark:text-[#E2B897] font-bold"
         >
-          {isAddingToCart ? (
-            <>
-              <ActivityIndicator size="small" color={theme.primary} />
-              <Text style={[styles.cartBtnText, { color: theme.primary }]}>
-                Adding to Bag...
-              </Text>
-            </>
-          ) : (
-            <>
-              <ShoppingCart size={18} color={theme.primary} />
-              <Text style={[styles.cartBtnText, { color: theme.primary }]}>
-                Add to Cart
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+          Add to Cart
+        </Button>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
+        <Button
+          variant="primary"
+          size="lg"
+          rounded="xl"
           onPress={onBuyNow}
           disabled={isAddingToCart}
-          style={[
-            styles.buyBtn,
-            {
-              backgroundColor: theme.primary,
-              opacity: isAddingToCart ? 0.6 : 1,
-            },
-          ]}
+          leftIcon={<ShoppingBag size={18} color="#FFFFFF" />}
+          className="flex-1"
         >
-          <ShoppingBag size={18} color="#FFFFFF" />
-          <Text style={styles.buyBtnText}>Buy Now</Text>
-        </TouchableOpacity>
+          Buy Now
+        </Button>
       </View>
     </View>
   );
@@ -253,7 +235,7 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 48,
     borderRadius: 14,
-    shadowColor: '#2563EB',
+    shadowColor: '#2D2621',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,

@@ -154,8 +154,8 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
     };
   });
 
-  const activeColor = '#2563EB'; // Vibrant royal blue
-  const inactiveColor = isDark ? '#94A3B8' : '#64748B';
+  const activeColor = isDark ? '#E2B897' : '#2D2621'; // Warm luxury espresso / Cashmere gold
+  const inactiveColor = isDark ? '#A89F97' : '#786C64';
 
   //positioning the gap between safe bottom edge and tabs
   const bottomPosition = bottomInset > 0 ? bottomInset + 4 : 14;
@@ -301,9 +301,9 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
             isAccountFocused
               ? {
                   backgroundColor: isDark
-                    ? 'rgba(37, 99, 235, 0.28)'
-                    : 'rgba(37, 99, 235, 0.12)',
-                  borderColor: isDark ? '#3B82F6' : '#2563EB',
+                    ? 'rgba(226, 184, 151, 0.25)'
+                    : 'rgba(45, 38, 33, 0.12)',
+                  borderColor: isDark ? '#E2B897' : '#2D2621',
                 }
               : {
                   backgroundColor: isDark

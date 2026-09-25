@@ -68,15 +68,15 @@ export default function AccountScreen() {
     >
       {/* Profile Header */}
       <View className="px-5 pt-3 pb-5">
-        <View className="p-5 rounded-3xl bg-slate-900 dark:bg-slate-800 shadow-md">
+        <View className="p-5 rounded-3xl bg-primary dark:bg-surface-dark shadow-md">
           <View className="flex-row items-center gap-4">
             {user?.avatar ? (
               <Image
                 source={{ uri: user.avatar }}
-                className="w-16 h-16 rounded-full border-2 border-primary"
+                className="w-16 h-16 rounded-full border-2 border-accent"
               />
             ) : (
-              <View className="w-16 h-16 rounded-full bg-primary items-center justify-center">
+              <View className="w-16 h-16 rounded-full bg-secondary items-center justify-center">
                 <Text className="text-xl font-bold text-white">{userInitial}</Text>
               </View>
             )}
@@ -86,7 +86,7 @@ export default function AccountScreen() {
                 {user?.name || 'User Account'}
               </Text>
               {user?.email && (
-                <Text className="text-body-sm text-slate-300">
+                <Text className="text-body-sm text-[#D5CDC4]">
                   {user.email}
                 </Text>
               )}
@@ -97,20 +97,20 @@ export default function AccountScreen() {
 
       {/* Dark Mode Toggle */}
       <View className="px-5 mb-4">
-        <View className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex-row items-center justify-between shadow-sm">
+        <View className="p-4 rounded-2xl bg-surface dark:bg-surface-dark border border-border dark:border-border-dark flex-row items-center justify-between shadow-xs">
           <View className="flex-row items-center gap-3">
-            <View className={`w-10 h-10 rounded-xl items-center justify-center ${isDark ? 'bg-indigo-950/60' : 'bg-amber-50'}`}>
+            <View className={`w-10 h-10 rounded-xl items-center justify-center ${isDark ? 'bg-primary/30' : 'bg-accent/15'}`}>
               {isDark ? (
-                <Moon size={20} color="#818CF8" />
+                <Moon size={20} color="#E2B897" />
               ) : (
-                <Sun size={20} color="#F59E0B" />
+                <Sun size={20} color="#C27838" />
               )}
             </View>
             <View>
-              <Text className="text-body-md font-semibold text-text-primary dark:text-white">
+              <Text className="text-body-md font-semibold text-text-primary dark:text-text-primary-dark">
                 Dark Mode
               </Text>
-              <Text className="text-caption text-text-secondary dark:text-slate-400">
+              <Text className="text-caption text-text-secondary dark:text-text-secondary-dark">
                 {isDark ? 'Dark theme active' : 'Light theme active'}
               </Text>
             </View>
@@ -119,8 +119,8 @@ export default function AccountScreen() {
           <Switch
             value={isDark}
             onValueChange={toggleTheme}
-            activeTrackColor="#6366F1"
-            inactiveTrackColor="#CBD5E1"
+            activeTrackColor="#C27838"
+            inactiveTrackColor="#D5CDC4"
           />
         </View>
       </View>
@@ -129,11 +129,11 @@ export default function AccountScreen() {
       <View className="px-5 gap-5 mb-5">
         {accountSections.map((section, idx) => (
           <View key={idx}>
-            <Text className="text-caption font-bold uppercase tracking-wider text-text-muted mb-2 px-1">
+            <Text className="text-caption font-bold uppercase tracking-wider text-text-muted dark:text-text-muted-dark mb-2 px-1">
               {section.title}
             </Text>
 
-            <View className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 shadow-sm overflow-hidden">
+            <View className="rounded-2xl bg-surface dark:bg-surface-dark border border-border dark:border-border-dark divide-y divide-border dark:divide-border-dark shadow-xs overflow-hidden">
               {section.items.map((item, itemIdx) => {
                 const Icon = item.icon;
                 return (
@@ -143,13 +143,13 @@ export default function AccountScreen() {
                     className="flex-row items-center justify-between p-4"
                   >
                     <View className="flex-row items-center gap-3">
-                      <Icon size={18} color="#64748B" />
-                      <Text className="text-body-md font-medium text-text-primary dark:text-slate-100">
+                      <Icon size={18} color={isDark ? '#A89F97' : '#786C64'} />
+                      <Text className="text-body-md font-medium text-text-primary dark:text-text-primary-dark">
                         {item.label}
                       </Text>
                     </View>
 
-                    <ChevronRight size={16} color="#94A3B8" />
+                    <ChevronRight size={16} color={isDark ? '#786C64' : '#A89F97'} />
                   </TouchableOpacity>
                 );
               })}
@@ -164,13 +164,13 @@ export default function AccountScreen() {
           fullWidth
           size="lg"
           variant="outline"
+          rounded="xl"
           onPress={handleLogout}
-          className="h-12 rounded-xl border-red-200 dark:border-red-950 bg-red-50/40 dark:bg-red-950/20"
+          leftIcon={<LogOut size={16} color="#EF4444" />}
+          className="border-red-200 dark:border-red-950 bg-red-50/40 dark:bg-red-950/20"
+          textClassName="text-red-600 font-semibold"
         >
-          <View className="flex-row items-center justify-center gap-2">
-            <LogOut size={16} color="#EF4444" />
-            <Text className="text-sm font-semibold text-red-600">Sign Out</Text>
-          </View>
+          Sign Out
         </Button>
       </View>
     </Screen>

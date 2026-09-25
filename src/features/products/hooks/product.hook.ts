@@ -41,6 +41,7 @@ export const useGetAllProducts = <TData = ProductsResponse>(
   return useQuery({
     queryKey: PRODUCT_QUERY_KEYS.list(params),
     queryFn: () => ProductApiService.getAllProducts(params) as Promise<TData>,
+    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };

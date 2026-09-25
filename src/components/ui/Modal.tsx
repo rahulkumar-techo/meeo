@@ -5,7 +5,7 @@ import {
   Text,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Button } from './Button';
+import { Button, ButtonVariant } from './Button';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ export interface ModalProps {
   cancelText?: string;
   onConfirm?: () => void;
   isConfirmLoading?: boolean;
-  confirmVariant?: 'primary' | 'danger' | 'secondary';
+  confirmVariant?: ButtonVariant;
 }
 
 export function Modal({

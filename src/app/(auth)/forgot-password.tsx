@@ -90,7 +90,8 @@ export default function ForgotPasswordScreen() {
             <Button
               fullWidth
               size="lg"
-              variant="primary"
+              variant="dark"
+              rounded="xl"
               onPress={() =>
                 router.push({
                   pathname: AppRoute.verifyOtp as any,
@@ -100,11 +101,8 @@ export default function ForgotPasswordScreen() {
                   },
                 })
               }
-              className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0"
             >
-              <Text className="text-sm font-bold text-white dark:text-slate-950">
-                Enter Verification Code
-              </Text>
+              Enter Verification Code
             </Button>
 
             {/* Resend Action */}
@@ -208,14 +206,14 @@ export default function ForgotPasswordScreen() {
           <Button
             fullWidth
             size="lg"
-            variant="primary"
+            variant="dark"
+            rounded="xl"
             isLoading={forgotPasswordMutation.isPending}
+            loadingText="Sending Code..."
             onPress={handleSubmit(onSubmit)}
-            className="h-12 rounded-xl bg-[#2D2621] dark:bg-white active:bg-[#1A1614] border-0 mt-1"
+            className="mt-1"
           >
-            <Text className="text-sm font-bold text-white dark:text-slate-950">
-              Send Reset Code
-            </Text>
+            Send Reset Code
           </Button>
         </View>
       </View>

@@ -138,11 +138,13 @@ export default function Index() {
 
         <Button
           size="sm"
-          variant="secondary"
-          className="self-start rounded-xl bg-white text-slate-900 px-4 h-9"
-          onPress={() => { }}
+          variant="subtle"
+          rounded="xl"
+          className="self-start px-4 h-9 bg-white text-slate-900"
+          textClassName="text-slate-900 font-bold"
+          onPress={() => router.push('/(tabs)')}
         >
-          <Text className="text-xs font-bold text-slate-900">Start Exploring</Text>
+          Start Exploring
         </Button>
       </View>
 
@@ -184,13 +186,13 @@ export default function Index() {
           fullWidth
           size="lg"
           variant="outline"
+          rounded="xl"
           onPress={handleLogout}
-          className="h-12 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          leftIcon={<LogOut size={16} color="#EF4444" />}
+          className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          textClassName="text-red-500 font-semibold"
         >
-          <View className="flex-row items-center justify-center gap-2">
-            <LogOut size={16} color="#EF4444" />
-            <Text className="text-sm font-semibold text-red-500">Sign Out</Text>
-          </View>
+          Sign Out
         </Button>
       </View>
     </Screen>

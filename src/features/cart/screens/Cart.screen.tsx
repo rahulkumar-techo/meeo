@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { ShoppingBag, Trash2 } from 'lucide-react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import {
@@ -22,11 +22,10 @@ import type { CartItem } from '../types/cart.types';
 import {
   CartItemRow,
   CartSummaryCard,
-  CartEmptyView,
   CartSkeleton,
   CartConfirmModal,
 } from '../components';
-import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState, ErrorState } from '@/components/ui';
 
 export function CartScreen() {
   const router = useRouter();
@@ -43,13 +42,6 @@ export function CartScreen() {
   const { mutate: updateQuantity } = useUpdateCartItem();
   const { mutate: removeItem, isPending: isRemoving } = useRemoveCartItem();
   const { mutate: clearCart, isPending: isClearing } = useClearCart();
-
-  // Automatically refresh cart whenever screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
 
   // Manual Pull-to-Refresh handler (Only shows spinner on manual gesture)
   const handleManualRefresh = useCallback(async () => {
@@ -140,12 +132,7 @@ export function CartScreen() {
   }, [router]);
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { backgroundColor: isDark ? theme.background : '#F8FAFC' },
-      ]}
-    >
+    <View className="flex-1 bg-background dark:bg-background-dark">
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -154,34 +141,14 @@ export function CartScreen() {
 
       {/* Screen Header */}
       <View
-        style={[
-          styles.header,
-          {
-            paddingTop: Math.max(insets.top, 12) + 8,
-            backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
-            borderBottomColor: isDark ? '#1E293B' : '#E2E8F0',
-          },
-        ]}
+        className="flex-row items-center justify-between px-4 pb-3.5 border-b border-border dark:border-border-dark bg-surface dark:bg-surface-dark z-10"
+        style={{ paddingTop: Math.max(insets.top, 12) + 8 }}
       >
-        <View style={styles.headerLeft}>
-          <View
-            style={[
-              styles.iconWrapper,
-              {
-                backgroundColor: isDark
-                  ? 'rgba(37, 99, 235, 0.2)'
-                  : 'rgba(37, 99, 235, 0.1)',
-              },
-            ]}
-          >
+        <View className="flex-row items-center gap-2.5">
+          <View className="w-9 h-9 rounded-full items-center justify-center bg-primary/10 dark:bg-primary/20">
             <ShoppingBag size={18} color={theme.primary} />
           </View>
-          <Text
-            style={[
-              styles.headerTitle,
-              { color: isDark ? '#F8FAFC' : '#0F172A' },
-            ]}
-          >
+          <Text className="text-xl font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
             My Bag {items.length > 0 ? `(${items.length})` : ''}
           </Text>
         </View>
@@ -191,10 +158,10 @@ export function CartScreen() {
             activeOpacity={0.7}
             onPress={() => setIsClearModalVisible(true)}
             disabled={isClearing}
-            style={styles.clearBtn}
+            className="flex-row items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-500/10"
           >
             <Trash2 size={15} color="#EF4444" />
-            <Text style={styles.clearBtnText}>Clear All</Text>
+            <Text className="text-red-500 text-xs font-bold">Clear All</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -219,7 +186,7 @@ export function CartScreen() {
         {isLoading && items.length === 0 ? (
           <CartSkeleton />
         ) : isError && items.length === 0 ? (
-          <View style={styles.errorWrapper}>
+          <View className="py-10 px-4">
             <ErrorState
               title="Unable to load bag"
               message={error?.message || 'Please check your connection and try again.'}
@@ -228,11 +195,18 @@ export function CartScreen() {
             />
           </View>
         ) : items.length === 0 ? (
-          <CartEmptyView />
+          <EmptyState
+            icon={<ShoppingBag size={36} color={theme.primary} />}
+            title="Your Shopping Bag is Empty"
+            description="Looks like you haven't added any items to your bag yet. Explore top products and great deals!"
+            actionText="Start Shopping"
+            onActionPress={() => router.push('/(tabs)')}
+            className="py-12"
+          />
         ) : (
-          <View style={styles.contentContainer}>
+          <View className="px-4 gap-4">
             {/* Items List */}
-            <View style={styles.itemsList}>
+            <View className="gap-3">
               {items.map((item, index) => (
                 <CartItemRow
                   key={item.id || item.variantId || `cart-item-${index}`}
@@ -247,6 +221,7 @@ export function CartScreen() {
 
             {/* Price Breakdown & Checkout Card */}
             <CartSummaryCard
+              items={items}
               subtotal={subtotal}
               discount={discount}
               currency="₹"
@@ -257,90 +232,37 @@ export function CartScreen() {
       </ScrollView>
 
       {/* Custom Alert Modal for Item Deletion */}
-      <CartConfirmModal
-        visible={!!itemToDelete}
-        title="Remove from Bag"
-        itemName={itemToDelete?.product?.name}
-        message="Are you sure you want to remove this item from your shopping bag?"
-        confirmText="Remove"
-        cancelText="Keep Item"
-        type="danger"
-        isLoading={isRemoving}
-        onClose={() => setItemToDelete(null)}
-        onConfirm={handleConfirmRemoveItem}
-      />
+      {!!itemToDelete && (
+        <CartConfirmModal
+          visible={!!itemToDelete}
+          title="Remove from Bag"
+          itemName={itemToDelete?.product?.name}
+          message="Are you sure you want to remove this item from your shopping bag?"
+          confirmText="Remove"
+          cancelText="Keep Item"
+          type="danger"
+          isLoading={isRemoving}
+          onClose={() => setItemToDelete(null)}
+          onConfirm={handleConfirmRemoveItem}
+        />
+      )}
 
       {/* Custom Alert Modal for Clear Bag */}
-      <CartConfirmModal
-        visible={isClearModalVisible}
-        title="Clear Shopping Bag"
-        message="Are you sure you want to remove all items from your shopping bag? This action cannot be undone."
-        confirmText="Clear All"
-        cancelText="Cancel"
-        type="danger"
-        isLoading={isClearing}
-        onClose={() => setIsClearModalVisible(false)}
-        onConfirm={handleConfirmClearCart}
-      />
+      {isClearModalVisible && (
+        <CartConfirmModal
+          visible={isClearModalVisible}
+          title="Clear Shopping Bag"
+          message="Are you sure you want to remove all items from your shopping bag? This action cannot be undone."
+          confirmText="Clear All"
+          cancelText="Cancel"
+          type="danger"
+          isLoading={isClearing}
+          onClose={() => setIsClearModalVisible(false)}
+          onConfirm={handleConfirmClearCart}
+        />
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    zIndex: 10,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  clearBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-  },
-  clearBtnText: {
-    color: '#EF4444',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  contentContainer: {
-    paddingHorizontal: 16,
-    gap: 18,
-  },
-  itemsList: {
-    gap: 12,
-  },
-  errorWrapper: {
-    paddingVertical: 40,
-    paddingHorizontal: 16,
-  },
-});
 
 export default CartScreen;

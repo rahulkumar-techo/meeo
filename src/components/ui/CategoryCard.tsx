@@ -71,7 +71,7 @@ export function CategoryCard({
         } items-center justify-center gap-2 shadow-sm ${className}`}
         {...props}
       >
-        <View className="w-14 h-14 rounded-xl bg-primary-light/50 dark:bg-blue-950/50 items-center justify-center overflow-hidden">
+        <View className="w-14 h-14 rounded-xl bg-primary-light/60 dark:bg-stone-900 items-center justify-center overflow-hidden">
           {icon ? (
             icon
           ) : (
@@ -115,7 +115,7 @@ export function CategoryCard({
         } items-center justify-center overflow-hidden shadow-sm`}
       >
         {icon ? (
-          <View className="w-full h-full rounded-full bg-primary-light/50 dark:bg-blue-950/60 items-center justify-center">
+          <View className="w-full h-full rounded-full bg-primary-light/60 dark:bg-stone-900 items-center justify-center">
             {icon}
           </View>
         ) : (

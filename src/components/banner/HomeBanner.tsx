@@ -147,7 +147,7 @@ const ProgressBarSegment = memo(
           style={[
             styles.segmentFill,
             {
-              backgroundColor: isDark ? '#60A5FA' : '#2563EB',
+              backgroundColor: isDark ? '#E2B897' : '#2D2621',
             },
             fillStyle,
           ]}

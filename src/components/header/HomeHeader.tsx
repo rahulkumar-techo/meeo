@@ -84,8 +84,14 @@ const HomeHeaderComponent = ({
       [0, -25],
       Extrapolation.CLAMP
     );
+    const paddingBottom = interpolate(
+      offset.value,
+      [0, COLLAPSIBLE_SECTION_HEIGHT],
+      [12, 0],
+      Extrapolation.CLAMP
+    );
 
-    return { height, opacity, transform: [{ translateY }], overflow: 'hidden' };
+    return { height, opacity, paddingBottom, transform: [{ translateY }], overflow: 'hidden' };
   });
 
   // 2. Dynamic Outer Container Height

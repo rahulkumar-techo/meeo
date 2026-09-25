@@ -18,6 +18,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { Trash2, AlertCircle, AlertTriangle } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { Button } from '@/components/ui';
 
 export interface CartConfirmModalProps {
   visible: boolean;
@@ -156,46 +157,28 @@ export function CartConfirmModal({
           {/* Action Buttons Row */}
           <View style={styles.buttonRow}>
             {/* Cancel / Keep Button */}
-            <TouchableOpacity
-              activeOpacity={0.7}
+            <Button
+              variant="outline"
+              size="md"
+              rounded="xl"
               onPress={onClose}
               disabled={isLoading}
-              style={[
-                styles.cancelBtn,
-                {
-                  backgroundColor: isDark ? '#0F172A' : '#F1F5F9',
-                  borderColor: isDark ? '#334155' : '#E2E8F0',
-                },
-              ]}
+              className="flex-1"
             >
-              <Text
-                style={[
-                  styles.cancelBtnText,
-                  { color: isDark ? '#E2E8F0' : '#475569' },
-                ]}
-              >
-                {cancelText}
-              </Text>
-            </TouchableOpacity>
+              {cancelText}
+            </Button>
 
             {/* Confirm / Delete Button */}
-            <TouchableOpacity
-              activeOpacity={0.8}
+            <Button
+              variant={isDanger ? 'danger' : 'primary'}
+              size="md"
+              rounded="xl"
               onPress={onConfirm}
-              disabled={isLoading}
-              style={[
-                styles.confirmBtn,
-                {
-                  backgroundColor: isDanger ? '#EF4444' : theme.primary,
-                },
-              ]}
+              isLoading={isLoading}
+              className="flex-1"
             >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text style={styles.confirmBtnText}>{confirmText}</Text>
-              )}
-            </TouchableOpacity>
+              {confirmText}
+            </Button>
           </View>
         </Animated.View>
       </View>
