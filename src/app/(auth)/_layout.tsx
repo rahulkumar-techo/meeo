@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useTheme } from '@/theme';
 
 export default function AuthLayout() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Stack
@@ -10,7 +10,7 @@ export default function AuthLayout() {
         headerShown: false,
         animation: 'slide_from_right',
         contentStyle: {
-          backgroundColor: isDark ? '#0B0F17' : '#F1F5F9',
+          backgroundColor: theme.background,
         },
       }}
     >

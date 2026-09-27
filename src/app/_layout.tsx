@@ -40,13 +40,12 @@ function RootLayoutContent() {
       isHydrated: s.isHydrated,
     }))
   );
-  // RootLayoutContent ke andar:
   const screenOptions = useMemo(() => ({
     ...noneTransition,
     contentStyle: {
-      backgroundColor: theme.primary,
+      backgroundColor: theme.background,
     }
-  }), [theme.primary]);
+  }), [theme.background]);
 
 
   // Initialize push notifications handler, channel, and listeners

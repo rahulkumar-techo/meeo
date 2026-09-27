@@ -1,19 +1,20 @@
 import { Stack } from 'expo-router';
 import { useTheme } from '@/theme';
+import { useMemo } from 'react';
+import { noneTransition } from '@/utils/screenTransitions';
 
 export default function ProtectedLayout() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+
+  const screenOptions = useMemo(() => ({
+    ...noneTransition,
+    contentStyle: {
+      backgroundColor: theme.background,
+    }
+  }), [theme.background]);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-        contentStyle: {
-          backgroundColor: isDark ? '#0B0F17' : '#F1F5F9',
-        },
-      }}
-    >
+    <Stack screenOptions={screenOptions}>
       <Stack.Screen name="product/[productId]" />
       <Stack.Screen name="checkout" />
       <Stack.Screen name="address" />
