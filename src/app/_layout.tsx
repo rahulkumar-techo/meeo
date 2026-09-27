@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -11,9 +11,13 @@ import {
 } from 'react-native-reanimated';
 import { ThemeProvider, useTheme } from '../theme';
 import { useAuthStore } from '@/features/auth';
+import { usePushNotifications } from '@/features/notifications';
 import { queryClient } from '@/apis/query-client';
+import { SkeletonProvider } from '@/components/ui/Skeleton';
 import '../../global.css';
 import { useScreenProfiler } from "@/hooks/native-performace/usePerformanceMonitor";
+import { noneTransition } from '@/utils/screenTransitions';
+import { useShallow } from 'zustand/react/shallow';
 
 // Global navigation monitor tracking screen transition times in development mode
 function NavigationPerformanceMonitor() {
@@ -28,8 +32,25 @@ configureReanimatedLogger({
 
 function RootLayoutContent() {
   const { theme, isDark } = useTheme();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isHydrated = useAuthStore((s) => s.isHydrated);
+
+  // RootLayoutContent ke andar selector ko strict aur shallow karein:
+  const { isAuthenticated, isHydrated } = useAuthStore(
+    useShallow((s) => ({
+      isAuthenticated: s.isAuthenticated,
+      isHydrated: s.isHydrated,
+    }))
+  );
+  // RootLayoutContent ke andar:
+  const screenOptions = useMemo(() => ({
+    ...noneTransition,
+    contentStyle: {
+      backgroundColor: theme.primary,
+    }
+  }), [theme.primary]);
+
+
+  // Initialize push notifications handler, channel, and listeners
+  usePushNotifications();
 
   useEffect(() => {
     // Restore persistent session on app start
@@ -51,12 +72,7 @@ function RootLayoutContent() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <NavigationPerformanceMonitor />
       <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: theme.background,
-          },
-        }}
+        screenOptions={screenOptions}
       >
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
@@ -77,7 +93,9 @@ export default function RootLayout() {
       <KeyboardProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
-            <RootLayoutContent />
+            <SkeletonProvider>
+              <RootLayoutContent />
+            </SkeletonProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </KeyboardProvider>

@@ -63,18 +63,31 @@ export function useRazorpayPayment() {
     failPaymentMutation.isPending ||
     retryPaymentMutation.isPending;
 
+  // Helper to sanitize phone number into valid 10-digit mobile number for Razorpay
+  const sanitizeContact = (phone?: string): string => {
+    if (!phone) return '';
+    const digits = phone.replace(/\D/g, '');
+    return digits.length >= 10 ? digits.slice(-10) : digits;
+  };
+
   // Helper for customer prefill info
-  const getPrefillData = (customPrefill?: PaymentPrefill) => ({
-    name: customPrefill?.name || user?.name || 'Customer',
-    email: customPrefill?.email || user?.email || 'customer@example.com',
-    contact: customPrefill?.contact || user?.phone || '9876543210',
-  });
+  const getPrefillData = (customPrefill?: PaymentPrefill) => {
+    const rawContact = customPrefill?.contact || user?.phone || '';
+    const cleanContact = sanitizeContact(rawContact);
+
+    return {
+      name: customPrefill?.name || user?.name || 'Customer',
+      email: customPrefill?.email || user?.email || 'customer@example.com',
+      contact: cleanContact.length === 10 ? cleanContact : '9876543210',
+    };
+  };
 
   /**
    * 1. Initiate fresh payment (Initialize -> Open Razorpay -> Verify on Success -> Record on Fail)
    */
   const initiatePayment = useCallback(
     async (options: InitiatePaymentOptions): Promise<RazorpaySuccessResponse | null> => {
+      console.log(options.prefill)
       setError(null);
 
       try {
@@ -101,6 +114,11 @@ export function useRazorpayPayment() {
           image: 'https://res.cloudinary.com/meeo/avatars/user-1.jpg',
           prefill: getPrefillData(options.prefill),
           theme: { color: '#2D2621' },
+          retry: {
+            enabled: true,
+            max_count: 3,
+          },
+          send_sms_hash: true,
         };
 
         // Step 3: Open Razorpay modal
@@ -178,6 +196,11 @@ export function useRazorpayPayment() {
           image: 'https://res.cloudinary.com/meeo/avatars/user-1.jpg',
           prefill: getPrefillData(options.prefill),
           theme: { color: '#2D2621' },
+          retry: {
+            enabled: true,
+            max_count: 3,
+          },
+          send_sms_hash: true,
         };
 
         // Step 3: Open Razorpay modal

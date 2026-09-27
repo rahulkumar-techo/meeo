@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { View, ViewProps } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -6,7 +6,31 @@ import Animated, {
   withRepeat,
   withTiming,
   Easing,
+  SharedValue,
 } from 'react-native-reanimated';
+
+const SkeletonAnimationContext = createContext<SharedValue<number> | null>(null);
+
+export function SkeletonProvider({ children }: { children: React.ReactNode }) {
+  const opacity = useSharedValue(0.35);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.85, {
+        duration: 900,
+        easing: Easing.inOut(Easing.ease),
+      }),
+      -1,
+      true
+    );
+  }, [opacity]);
+
+  return (
+    <SkeletonAnimationContext.Provider value={opacity}>
+      {children}
+    </SkeletonAnimationContext.Provider>
+  );
+}
 
 export interface SkeletonProps extends ViewProps {
   width?: number | string;
@@ -23,21 +47,26 @@ export function Skeleton({
   style,
   ...props
 }: SkeletonProps) {
-  const opacity = useSharedValue(0.35);
+  const sharedOpacity = useContext(SkeletonAnimationContext);
+  const localOpacity = useSharedValue(0.35);
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(0.85, {
-        duration: 900,
-        easing: Easing.inOut(Easing.ease),
-      }),
-      -1,
-      true
-    );
-  }, [opacity]);
+    if (!sharedOpacity) {
+      localOpacity.value = withRepeat(
+        withTiming(0.85, {
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        -1,
+        true
+      );
+    }
+  }, [sharedOpacity, localOpacity]);
+
+  const activeOpacity = sharedOpacity ?? localOpacity;
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
+    opacity: activeOpacity.value,
   }));
 
   return (

@@ -193,19 +193,21 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
             styles.mainPill,
             {
               backgroundColor: isDark
-                ? 'rgba(30, 41, 59, 0.88)'
-                : 'rgba(255, 255, 255, 0.90)',
+                ? Platform.OS === 'ios' ? 'rgba(30, 41, 59, 0.88)' : '#1E293B'
+                : Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.90)' : '#FFFFFF',
               borderColor: isDark
                 ? 'rgba(51, 65, 85, 0.65)'
                 : 'rgba(255, 255, 255, 0.85)',
             },
           ]}
         >
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 85 : 75}
-            tint={isDark ? 'dark' : 'systemMaterialLight'}
-            style={[StyleSheet.absoluteFill, { borderRadius: 32, overflow: 'hidden' }]}
-          />
+          {Platform.OS === 'ios' && (
+            <BlurView
+              intensity={85}
+              tint={isDark ? 'dark' : 'systemMaterialLight'}
+              style={[StyleSheet.absoluteFill, { borderRadius: 32, overflow: 'hidden' }]}
+            />
+          )}
 
           {/* Smooth Sliding Active Tab Highlight */}
           <Animated.View
@@ -307,19 +309,21 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
                 }
               : {
                   backgroundColor: isDark
-                    ? 'rgba(30, 41, 59, 0.88)'
-                    : 'rgba(255, 255, 255, 0.90)',
+                    ? Platform.OS === 'ios' ? 'rgba(30, 41, 59, 0.88)' : '#1E293B'
+                    : Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.90)' : '#FFFFFF',
                   borderColor: isDark
                     ? 'rgba(51, 65, 85, 0.65)'
                     : 'rgba(255, 255, 255, 0.85)',
                 },
           ]}
         >
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 85 : 75}
-            tint={isDark ? 'dark' : 'systemMaterialLight'}
-            style={[StyleSheet.absoluteFill, { borderRadius: 28, overflow: 'hidden' }]}
-          />
+          {Platform.OS === 'ios' && (
+            <BlurView
+              intensity={85}
+              tint={isDark ? 'dark' : 'systemMaterialLight'}
+              style={[StyleSheet.absoluteFill, { borderRadius: 28, overflow: 'hidden' }]}
+            />
+          )}
           <User
             size={22}
             color={isAccountFocused ? activeColor : inactiveColor}
@@ -340,7 +344,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* 3. Bottom Safe Area Edge Blur Component */}
+      {/* 3. Bottom Safe Area Edge Component */}
       {bottomInset > 0 && (
         <View
           pointerEvents="none"
@@ -349,16 +353,18 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
             {
               height: bottomInset,
               backgroundColor: isDark
-                ? 'rgba(15, 23, 42, 0.70)'
-                : 'rgba(255, 255, 255, 0.70)',
+                ? Platform.OS === 'ios' ? 'rgba(15, 23, 42, 0.70)' : '#0F172A'
+                : Platform.OS === 'ios' ? 'rgba(255, 255, 255, 0.70)' : '#FFFFFF',
             },
           ]}
         >
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 90 : 80}
-            tint={isDark ? 'dark' : 'systemMaterialLight'}
-            style={StyleSheet.absoluteFill}
-          />
+          {Platform.OS === 'ios' && (
+            <BlurView
+              intensity={90}
+              tint={isDark ? 'dark' : 'systemMaterialLight'}
+              style={StyleSheet.absoluteFill}
+            />
+          )}
           <View
             style={[
               styles.edgeTopBorder,

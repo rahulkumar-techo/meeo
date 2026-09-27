@@ -107,16 +107,16 @@ export function ProductListsSection({
       return items;
     }
 
-    // Use dummy data fallback when offline or no records returned
-    if (fallbackToDummyData && (!data || items.length === 0)) {
-      return DUMMY_100_PRODUCTS as unknown as Product[];
+    // Use dummy data fallback only when query is complete and offline or no records returned
+    if (!isLoading && fallbackToDummyData && (!data || items.length === 0)) {
+      return DUMMY_100_PRODUCTS.slice(0, 20) as unknown as Product[];
     }
 
     return [];
-  }, [data, fallbackToDummyData]);
+  }, [data, isLoading, fallbackToDummyData]);
 
   const keyExtractor = useCallback(
-    (item: Product) => item.id || String(Math.random()),
+    (item: Product, index: number) => item.id || `product-${index}`,
     []
   );
 
@@ -144,10 +144,11 @@ export function ProductListsSection({
       >
         {ListHeaderComponent}
         <View className="flex-row flex-wrap mt-3">
-          {Array.from({ length: 6 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <View
               key={index}
-              className={`flex-1 mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
+              style={{ width: '50%' }}
+              className={`mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
             >
               <SkeletonProductCard />
             </View>

@@ -42,8 +42,14 @@ const initialState: AuthState = {
   pendingEmail: null,
 };
 
-function toUserRole(role: string | undefined): UserRole {
-  return role || 'customer';
+function toUserRole(role: string | undefined, roles?: string[]): UserRole {
+  if (roles && Array.isArray(roles) && roles.length > 0) {
+    return roles[0].toLowerCase();
+  }
+  if (role) {
+    return role.toLowerCase();
+  }
+  return 'customer';
 }
 
 export function mapApiUserToStoreUser(apiUser: any): User {
@@ -56,7 +62,8 @@ export function mapApiUserToStoreUser(apiUser: any): User {
     };
   }
 
-  const raw = apiUser.user || apiUser.profile || apiUser;
+  // Handle nested response format { success, data } or flat object
+  const raw = apiUser.data || apiUser.user || apiUser.profile || apiUser;
   const firstName = raw.firstName || raw.first_name || '';
   const lastName = raw.lastName || raw.last_name || '';
   const name =
@@ -65,19 +72,29 @@ export function mapApiUserToStoreUser(apiUser: any): User {
     raw.email?.split('@')[0] ||
     '';
 
+  const avatar = raw.avatarUrl || raw.avatar || raw.profileImage || null;
+
+  // Keep only clean user profile data and default role 'customer' without permissions
   return {
-    ...raw,
-    id: raw.id || raw._id || '',
+    id: raw.id || raw.userId || raw._id || '',
+    userId: raw.userId || raw.id || '',
     firstName,
     lastName,
     name,
     email: raw.email || '',
-    phone: raw.phone || raw.phoneNumber || '',
+    phone: raw.phone || raw.phoneNumber || null,
     phoneVerified: Boolean(raw.phoneVerified),
-    avatar: raw.avatar || raw.profileImage || raw.avatarUrl || raw.picture || '',
-    avatarUrl: raw.avatarUrl || raw.avatar || raw.profileImage || '',
-    profileImage: raw.profileImage || raw.avatar || raw.avatarUrl || '',
-    role: toUserRole(raw.role),
+    emailVerified: Boolean(raw.emailVerified),
+    avatar,
+    avatarUrl: avatar,
+    profileImage: avatar,
+    status: raw.status || 'ACTIVE',
+    role: toUserRole(raw.role, raw.roles),
+    roles: Array.isArray(raw.roles) ? raw.roles : [raw.role || 'customer'],
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+    sessionId: raw.sessionId,
+    sessionExpiresAt: raw.sessionExpiresAt,
   };
 }
 
@@ -91,16 +108,25 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
   login: async (tokens, user) => {
     await secureStorage.setTokens(tokens);
     if (user) {
-      await secureStorage.setUser(user);
+      const cleanUser = mapApiUserToStoreUser(user);
+      await secureStorage.setUser(cleanUser);
+      authSession.setAccessToken(tokens.accessToken);
+      set({
+        accessToken: tokens.accessToken,
+        token: tokens.accessToken,
+        isAuthenticated: true,
+        user: cleanUser,
+        isHydrated: true,
+      });
+    } else {
+      authSession.setAccessToken(tokens.accessToken);
+      set({
+        accessToken: tokens.accessToken,
+        token: tokens.accessToken,
+        isAuthenticated: true,
+        isHydrated: true,
+      });
     }
-    authSession.setAccessToken(tokens.accessToken);
-    set({
-      accessToken: tokens.accessToken,
-      token: tokens.accessToken,
-      isAuthenticated: true,
-      user,
-      isHydrated: true,
-    });
   },
 
   logout: async () => {
@@ -131,9 +157,10 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
   },
 
   setUser: (user) => {
-    set({ user, isAuthenticated: Boolean(user) });
-    if (user) {
-      secureStorage.setUser(user);
+    const cleanUser = user ? mapApiUserToStoreUser(user) : null;
+    set({ user: cleanUser, isAuthenticated: Boolean(cleanUser) });
+    if (cleanUser) {
+      secureStorage.setUser(cleanUser);
     }
   },
 
@@ -155,45 +182,64 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const storedTokens = await secureStorage.getTokens();
-      const cachedUser = await secureStorage.getUser<User>();
+      const [storedTokens, cachedUser] = await Promise.all([
+        secureStorage.getTokens(),
+        secureStorage.getUser<User>(),
+      ]);
 
       if (!storedTokens?.accessToken) {
-        set({ ...initialState, isHydrated: true });
+        set({ ...initialState, isHydrated: true, isLoading: false });
         return;
       }
 
       authSession.setAccessToken(storedTokens.accessToken);
+      
+      // Instantly restore cached user from local storage without blocking Cold Launch
       set({
         accessToken: storedTokens.accessToken,
         token: storedTokens.accessToken,
         user: cachedUser || null,
         isAuthenticated: true,
+        isHydrated: true,
+        isLoading: false,
       });
 
-      // Synchronize with live user profile from backend
-      try {
-        const res = await AuthService.getMe();
-        const userObj = res.data || res;
-        const mappedUser = mapApiUserToStoreUser(userObj);
-        await secureStorage.setUser(mappedUser);
-        set({ user: mappedUser, isAuthenticated: true });
-      } catch (err) {
-        if (!isNetworkFailure(err)) {
-          const status = (err as any)?.status || (err as any)?.response?.status;
-          // If token is invalid (401), reset state
-          if (status === 401) {
-            await secureStorage.clearTokens();
-            authSession.clearSession();
-            set({ ...initialState, isHydrated: true });
-            return;
+      // Synchronize with live user profile in background without blocking navigation
+      AuthService.getMe()
+        .then(async (res) => {
+          const userObj = res.data || res;
+          const mappedUser = mapApiUserToStoreUser(userObj);
+
+          // Compare with cached user data to avoid redundant re-renders
+          const currentCached = get().user;
+          const isChanged =
+            !currentCached ||
+            currentCached.id !== mappedUser.id ||
+            currentCached.updatedAt !== mappedUser.updatedAt ||
+            currentCached.email !== mappedUser.email ||
+            currentCached.name !== mappedUser.name ||
+            currentCached.phone !== mappedUser.phone ||
+            currentCached.role !== mappedUser.role ||
+            currentCached.avatarUrl !== mappedUser.avatarUrl;
+
+          if (isChanged) {
+            await secureStorage.setUser(mappedUser);
+            set({ user: mappedUser, isAuthenticated: true });
           }
-        }
-      }
+        })
+        .catch(async (err) => {
+          if (!isNetworkFailure(err)) {
+            const status = (err as any)?.status || (err as any)?.response?.status;
+            // If token is invalid (401), reset state
+            if (status === 401) {
+              await secureStorage.clearTokens();
+              authSession.clearSession();
+              set({ ...initialState, isHydrated: true, isLoading: false });
+            }
+          }
+        });
     } catch {
-      set({ ...initialState, isHydrated: true });
-    } finally {
-      set({ isLoading: false, isHydrated: true });
+      set({ ...initialState, isHydrated: true, isLoading: false });
     }
   },
 
@@ -208,6 +254,9 @@ setupApiClient({
   updateTokens: (tokens: AuthTokens) => useAuthStore.getState().updateTokens(tokens),
   logout: () => useAuthStore.getState().logout(),
 });
+
+// Eagerly initiate auth hydration on module load so it is ready before initial render
+useAuthStore.getState().initializeAuth();
 
 export const useUserStore = useAuthStore;
 export default useAuthStore;

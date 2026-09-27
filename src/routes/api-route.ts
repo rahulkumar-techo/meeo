@@ -145,6 +145,8 @@ export const ApiRoute = {
     NOTIFICATION_PREFRENCES: "/notifications/preferences",
     UPDATE_NOTIFICATION_PREFERENCES: "/notifications/preferences", // PATCH/PUT - update preferences
     UPDATE_NOTIFICATION_PREFRENCES: "/notifications/preferences",
+    REGISTER_DEVICE: "/notifications/devices", // POST - Register or update FCM device push token
+    DEVICES: "/notifications/devices",
   },
 
   ADDRESS: {

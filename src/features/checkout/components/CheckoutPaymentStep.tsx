@@ -21,6 +21,7 @@ import { useTheme } from '@/theme';
 import { checkoutService } from '../services/checkout.service';
 import { useValidateCheckout } from '../hooks/checkout.hook';
 import { useRazorpayPayment } from '../hooks/razorpay.hook';
+import { useAuthStore } from '@/features/auth';
 import { useGetCart, CART_QUERY_KEYS } from '@/features/cart';
 import { queryClient } from '@/apis/query-client';
 import { Button } from '@/components/ui';
@@ -38,6 +39,7 @@ export function CheckoutPaymentStep({
 }: CheckoutPaymentStepProps) {
   const router = useRouter();
   const { isDark } = useTheme();
+  const user = useAuthStore((s) => s.user);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
@@ -94,8 +96,9 @@ export function CheckoutPaymentStep({
           orderId: order.id,
           orderNumber: order.orderNumber,
           prefill: {
-            name: selectedAddress.recipientName,
-            contact: selectedAddress.phone || '',
+            name: selectedAddress.recipientName || user?.name,
+            contact: selectedAddress.phone || user?.phone || '',
+            email: user?.email,
           },
           onSuccess: async () => {
             onOrderSuccess(order.id, order.orderNumber);

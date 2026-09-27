@@ -25,25 +25,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const theme = useMemo(() => (isDark ? darkColors : lightColors), [isDark]);
 
-  const toggleTheme = () => {
+  const toggleTheme = React.useCallback(() => {
     const nextMode = isDark ? 'light' : 'dark';
     setColorScheme(nextMode);
-  };
+  }, [isDark, setColorScheme]);
 
-  const handleSetMode = (mode: ThemeMode) => {
+  const handleSetMode = React.useCallback((mode: ThemeMode) => {
     setColorScheme(mode);
-  };
+  }, [setColorScheme]);
+
+  const contextValue = useMemo(
+    () => ({
+      isDark,
+      theme,
+      mode: currentMode,
+      setMode: handleSetMode,
+      toggleTheme,
+    }),
+    [isDark, theme, currentMode, handleSetMode, toggleTheme]
+  );
 
   return (
-    <ThemeContext.Provider
-      value={{
-        isDark,
-        theme,
-        mode: currentMode,
-        setMode: handleSetMode,
-        toggleTheme,
-      }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

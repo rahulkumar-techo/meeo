@@ -1,5 +1,6 @@
 import React, { useMemo, memo } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { Plus, Minus, Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import type { CartItem } from '../types/cart.types';
@@ -99,8 +100,10 @@ export const CartItemRow = memo(function CartItemRow({
       <View className="w-[88px] h-[88px] rounded-xl overflow-hidden bg-surface-subtle dark:bg-surface-subtle-dark items-center justify-center p-1">
         <Image
           source={{ uri: imageUrl }}
-          className="w-full h-full"
-          resizeMode="contain"
+          style={{ width: '100%', height: '100%' }}
+          contentFit="contain"
+          transition={150}
+          cachePolicy="memory-disk"
         />
       </View>
 

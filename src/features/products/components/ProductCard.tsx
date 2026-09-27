@@ -34,7 +34,7 @@ export interface ProductCardProps {
 const FALLBACK_IMAGE_URI =
   'https://ik.imagekit.io/ww7mydmoc/ChatGPT%20Image%20Sep%2024,%202026,%2009_28_12%20AM.png';
 
-export function ProductCard({
+function ProductCardComponent({
   product,
   id,
   title: propTitle,
@@ -285,4 +285,5 @@ const styles = StyleSheet.create({
   },
 });
 
+export const ProductCard = React.memo(ProductCardComponent);
 export default ProductCard;

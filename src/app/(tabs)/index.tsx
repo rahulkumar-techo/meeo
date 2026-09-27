@@ -18,6 +18,7 @@ import {
 } from '@/components/header/HomeHeader';
 import { HomeBanner } from '@/components/banner/HomeBanner';
 import { ProductListsSection } from '@/features/products';
+import { NotificationPermissionCard } from '@/features/notifications';
 import { useTheme } from '@/theme';
 import { TrendingUp, Zap } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -66,6 +67,9 @@ export default function HomeScreen() {
   const listHeader = useMemo(
     () => (
       <View>
+        {/* Push Notification Permission Card Banner */}
+        <NotificationPermissionCard />
+
         {/* Featured Promotional Banners Slider */}
         <HomeBanner />
 
@@ -124,6 +128,38 @@ export default function HomeScreen() {
     [theme.primary]
   );
 
+  const queryParams = useMemo(
+    () => ({
+      categoryId: activeTab !== 'for-you' ? activeTab : undefined,
+    }),
+    [activeTab]
+  );
+
+  const handleProductPress = useCallback(
+    (product: any) => {
+      router.push({
+        pathname: AppRoute.product_details,
+        params: { productId: product.id },
+      });
+    },
+    [router]
+  );
+
+  const handleWishlistToggle = useCallback((_product: any) => {
+    // Wishlist toggle handling
+  }, []);
+
+  const noop = useCallback(() => {}, []);
+
+  const contentContainerStyle = useMemo(
+    () => ({
+      paddingHorizontal: 8,
+      paddingTop: headerHeight + 8,
+      paddingBottom: insets.bottom + 90,
+    }),
+    [headerHeight, insets.bottom]
+  );
+
   return (
     <View className="flex-1 bg-background dark:bg-background-dark">
       <StatusBar
@@ -138,36 +174,22 @@ export default function HomeScreen() {
         headerOffset={headerOffset}
         activeCategoryId={activeTab}
         onCategorySelect={handleCategorySelect}
-        onSearchPress={() => { }}
-        onFilterPress={() => { }}
-        onScannerPress={() => { }}
-        onNotificationPress={() => { }}
+        onSearchPress={noop}
+        onFilterPress={noop}
+        onScannerPress={noop}
+        onNotificationPress={noop}
       />
 
       {/* Reusable Product List Section with FlashList and React Query API */}
       <ProductListsSection
-        params={{
-          categoryId: activeTab !== 'for-you' ? activeTab : undefined,
-        }}
+        params={queryParams}
         onScroll={scrollHandler}
         progressViewOffset={headerHeight}
         ListHeaderComponent={listHeader}
         ListFooterComponent={listFooter}
-        contentContainerStyle={{
-          paddingHorizontal: 8,
-          paddingTop: headerHeight + 8,
-          paddingBottom: insets.bottom + 90,
-        }}
-        onProductPress={(product) => {
-          // Navigation / product detail handling
-          router.push({
-            pathname: AppRoute.product_details,
-            params: { productId: product.id }
-          })
-        }}
-        onWishlistToggle={(product) => {
-          // Wishlist toggle handling
-        }}
+        contentContainerStyle={contentContainerStyle}
+        onProductPress={handleProductPress}
+        onWishlistToggle={handleWishlistToggle}
       />
     </View>
   );

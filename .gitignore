@@ -43,3 +43,7 @@ example
 /ios
 /android
 app-docs
+
+# Google Services / Firebase credentials
+google-services*.json
+google-services.json

@@ -8,8 +8,10 @@ const USER_KEY = 'user_profile_data';
 export const secureStorage = {
   async getTokens(): Promise<AuthTokens | null> {
     try {
-      const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const [accessToken, refreshToken] = await Promise.all([
+        SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+      ]);
       if (!accessToken && !refreshToken) return null;
       return {
         accessToken: accessToken || '',

@@ -22,6 +22,7 @@ import {
 import { Screen } from '@/components/layout';
 import { Button, Switch } from '@/components/ui';
 import { useAuthStore, useLogout } from '@/features/auth';
+import { usePushNotifications } from '@/features/notifications';
 import { useTheme } from '@/theme';
 import { AppRoute } from '@/routes';
 
@@ -30,10 +31,17 @@ export default function AccountScreen() {
   const { user } = useAuthStore();
   const { isDark, toggleTheme } = useTheme();
   const logoutMutation = useLogout();
+  const { permissionStatus, requestPermission } = usePushNotifications();
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
     router.replace(AppRoute.signIn as any);
+  };
+
+  const handleNotificationPress = async () => {
+    if (permissionStatus !== 'granted') {
+      await requestPermission();
+    }
   };
 
   const accountSections = [
@@ -49,7 +57,12 @@ export default function AccountScreen() {
     {
       title: 'Preferences',
       items: [
-        { label: 'Notifications', icon: Bell },
+        {
+          label: 'Notifications',
+          icon: Bell,
+          badge: permissionStatus === 'granted' ? 'Enabled' : 'Disabled',
+          onPress: handleNotificationPress,
+        },
         { label: 'Privacy & Security', icon: ShieldCheck },
         { label: 'Help & Support', icon: HelpCircle },
       ],
@@ -140,6 +153,7 @@ export default function AccountScreen() {
                   <TouchableOpacity
                     key={itemIdx}
                     activeOpacity={0.7}
+                    onPress={'onPress' in item ? (item as any).onPress : undefined}
                     className="flex-row items-center justify-between p-4"
                   >
                     <View className="flex-row items-center gap-3">
@@ -149,7 +163,28 @@ export default function AccountScreen() {
                       </Text>
                     </View>
 
-                    <ChevronRight size={16} color={isDark ? '#786C64' : '#A89F97'} />
+                    <View className="flex-row items-center gap-2">
+                      {'badge' in item && (
+                        <View
+                          className={`px-2 py-0.5 rounded-full ${
+                            (item as any).badge === 'Enabled'
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60'
+                              : 'bg-stone-200 dark:bg-stone-800'
+                          }`}
+                        >
+                          <Text
+                            className={`text-[11px] font-semibold ${
+                              (item as any).badge === 'Enabled'
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-stone-500 dark:text-stone-400'
+                            }`}
+                          >
+                            {(item as any).badge}
+                          </Text>
+                        </View>
+                      )}
+                      <ChevronRight size={16} color={isDark ? '#786C64' : '#A89F97'} />
+                    </View>
                   </TouchableOpacity>
                 );
               })}

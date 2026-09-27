@@ -207,6 +207,7 @@ export function useLogout() {
 export function useCurrentUser() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setUser = useAuthStore((state) => state.setUser);
+  const currentUser = useAuthStore((state) => state.user);
 
   return useQuery({
     queryKey: AUTH_QUERY_KEYS.me,
@@ -217,5 +218,8 @@ export function useCurrentUser() {
       return user;
     },
     enabled: isAuthenticated,
+    initialData: currentUser || undefined,
+    staleTime: 1000 * 60 * 30, // Cache for 30 minutes unless invalidated
+    gcTime: 1000 * 60 * 60 * 24, // Retain in garbage collection for 24 hours
   });
 }

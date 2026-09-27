@@ -85,8 +85,10 @@ export function useScreenProfiler(customName?: string, thresholdMs = 150) {
       isColdLaunchComplete = true;
     });
 
-    // Listen for navigation state transitions safely
+    // Listen for navigation state transitions safely after initial cold launch
     const unsubscribe = nav.addListener?.("state", () => {
+      if (!isColdLaunchComplete) return;
+
       const currentRoute = nav.isReady?.() ? nav.getCurrentRoute?.() : null;
       const currentName = customName || currentRoute?.name || "Screen";
 
