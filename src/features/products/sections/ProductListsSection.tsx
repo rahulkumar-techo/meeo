@@ -46,7 +46,7 @@ export function ProductListsSection({
   onProductPress,
   onWishlistToggle,
   numColumns = 2,
-  estimatedItemSize = 290,
+  estimatedItemSize = 220,
   showsVerticalScrollIndicator = false,
   scrollEventThrottle = 16,
   refreshing: externalRefreshing,
@@ -111,30 +111,33 @@ export function ProductListsSection({
   );
 
   const renderProductItem = useCallback(
-    ({ item, index }: { item: Product; index: number }) => (
+    ({ item }: { item: Product; index: number }) => (
       <View
-        className={`flex-1 mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
+        style={{
+          flex: 1 / numColumns,
+          paddingHorizontal: 3,
+          marginBottom: 10,
+        }}
       >
         <ProductCard
           product={item}
           onPress={() => onProductPress?.(item)}
-          onWishlistToggle={() => onWishlistToggle?.(item)}
         />
       </View>
     ),
-    [onProductPress, onWishlistToggle]
+    [numColumns, onProductPress]
   );
 
   // Render Skeleton, Error, or Empty state directly in ListEmptyComponent
   const renderEmptyComponent = useCallback(() => {
     if (isLoading || isFetching) {
       return (
-        <View className="flex-row flex-wrap mt-3">
-          {Array.from({ length: 4 }).map((_, index) => (
+        <View className="flex-row flex-wrap mt-2">
+          {Array.from({ length: numColumns * 2 }).map((_, index) => (
             <View
               key={index}
-              style={{ width: '50%' }}
-              className={`mb-3 ${index % 2 === 0 ? 'pr-1.5' : 'pl-1.5'}`}
+              style={{ width: `${100 / numColumns}%`, paddingHorizontal: 3 }}
+              className="mb-3"
             >
               <SkeletonProductCard />
             </View>

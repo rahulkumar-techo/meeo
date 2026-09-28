@@ -25,7 +25,7 @@ import {
   useSharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
- 
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -105,18 +105,10 @@ export default function HomeScreen() {
         <HomeBanner />
 
         {/* Flash Deals / Product Section Header */}
-        <View className="flex-row items-center justify-between mb-3 mt-1">
-          <View className="flex-row items-center gap-1.5">
-            <Zap size={20} color="#F59E0B" />
-            <Text className="text-lg font-bold text-text-primary dark:text-text-primary-dark">
-              All Products
-            </Text>
-          </View>
-          <View className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60">
-            <Text className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              ⚡ FlashList Powered
-            </Text>
-          </View>
+        <View className="flex-row items-center justify-between mb-3 mt-1 px-2 ">
+          <Text className="text-lg font-bold text-text-primary dark:text-text-primary-dark">
+            Suggested For You
+          </Text>
         </View>
       </View>
     ),
