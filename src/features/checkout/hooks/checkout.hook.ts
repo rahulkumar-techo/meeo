@@ -1,18 +1,18 @@
+import { CART_QUERY_KEYS } from "@/features/cart";
 import {
-  useQuery,
   useMutation,
+  UseMutationOptions,
+  useQuery,
   useQueryClient,
   UseQueryOptions,
-  UseMutationOptions,
 } from "@tanstack/react-query";
 import { checkoutApi } from "../services/checkout.service";
 import type {
   CheckoutValidationResponse,
-  ValidateCheckoutPayload,
   CreateOrderPayload,
   CreateOrderResponse,
+  ValidateCheckoutPayload,
 } from "../types/checkout.types";
-import { CART_QUERY_KEYS } from "@/features/cart";
 
 export const CHECKOUT_QUERY_KEYS = {
   all: ["checkout"] as const,

@@ -1,42 +1,73 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { HomeBanner } from '@/components/banner/HomeBanner';
+import type { HomeHeaderCategory } from '@/components/header';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-} from 'react-native';
-import {
-  useSharedValue,
-  useAnimatedScrollHandler,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  HomeHeader,
   COLLAPSIBLE_SECTION_HEIGHT,
+  HomeHeader,
   STICKY_SECTION_HEIGHT,
 } from '@/components/header/HomeHeader';
-import { HomeBanner } from '@/components/banner/HomeBanner';
-import { ProductListsSection } from '@/features/products';
 import { NotificationPermissionCard } from '@/features/notifications';
-import { useTheme } from '@/theme';
-import { TrendingUp, Zap } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { ProductListsSection } from '@/features/products';
+import { useGetAllCategory } from '@/features/products/hooks/category-query';
 import { AppRoute } from '@/routes';
-
+import { useTheme } from '@/theme';
+import { useRouter } from 'expo-router';
+import { Sparkles, TrendingUp, Zap } from 'lucide-react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  Platform,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+ 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { theme, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('for-you');
 
+  const { data: categoryData } = useGetAllCategory();
+
+  // Combine static "For You" root tab with dynamic backend categories
+  const categories: HomeHeaderCategory[] = useMemo(() => {
+    const rootCategory: HomeHeaderCategory = {
+      id: 'for-you',
+      name: 'For You',
+      icon: Sparkles,
+    };
+
+    if (!categoryData || categoryData.length === 0) {
+      return [rootCategory];
+    }
+
+    const dynamicCategories: HomeHeaderCategory[] = categoryData.map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      imageUrl: cat.imageUrl || undefined,
+      sortOrder: cat.sortOrder,
+      slug: cat.slug,
+    }));
+
+    return [rootCategory, ...dynamicCategories];
+  }, [categoryData]);
+
+
   // SharedValues run 100% on native UI thread for smooth 60/120fps scrolling
+
   const scrollY = useSharedValue(0);
   const lastScrollY = useSharedValue(0);
   const headerOffset = useSharedValue(0); // 0 (expanded) to COLLAPSIBLE_SECTION_HEIGHT (collapsed)
 
+  const topInset = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0);
+
   const headerHeight =
-    Math.max(insets.top, 12) +
+    topInset +
     COLLAPSIBLE_SECTION_HEIGHT +
     STICKY_SECTION_HEIGHT;
 
@@ -149,12 +180,12 @@ export default function HomeScreen() {
     // Wishlist toggle handling
   }, []);
 
-  const noop = useCallback(() => {}, []);
+  const noop = useCallback(() => { }, []);
 
   const contentContainerStyle = useMemo(
     () => ({
-      paddingHorizontal: 8,
-      paddingTop: headerHeight + 8,
+      paddingHorizontal: 2,
+      paddingTop: headerHeight,
       paddingBottom: insets.bottom + 90,
     }),
     [headerHeight, insets.bottom]
@@ -172,6 +203,7 @@ export default function HomeScreen() {
       <HomeHeader
         scrollY={scrollY}
         headerOffset={headerOffset}
+        categories={categories}
         activeCategoryId={activeTab}
         onCategorySelect={handleCategorySelect}
         onSearchPress={noop}
@@ -180,7 +212,10 @@ export default function HomeScreen() {
         onNotificationPress={noop}
       />
 
+
       {/* Reusable Product List Section with FlashList and React Query API */}
+
+
       <ProductListsSection
         params={queryParams}
         onScroll={scrollHandler}
@@ -191,6 +226,7 @@ export default function HomeScreen() {
         onProductPress={handleProductPress}
         onWishlistToggle={handleWishlistToggle}
       />
+
     </View>
   );
 }

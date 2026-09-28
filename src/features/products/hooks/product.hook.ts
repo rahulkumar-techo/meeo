@@ -45,7 +45,6 @@ export const useGetAllProducts = <TData = ProductsResponse>(
     ...options,
   });
 };
-
 /**
  * Hook to fetch single product details by product ID
  */
@@ -58,6 +57,7 @@ export const useGetProductById = <TData = ProductDetailResponse>(
     queryFn: () =>
       ProductApiService.getProductById(productId!) as Promise<TData>,
     enabled: Boolean(productId) && (options?.enabled ?? true),
+    staleTime:5,
     ...options,
   });
 };

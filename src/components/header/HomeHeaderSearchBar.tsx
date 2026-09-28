@@ -2,12 +2,14 @@ import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Search, Mic, QrCode } from 'lucide-react-native';
 
-interface Props {
+export interface HomeHeaderSearchBarProps {
   onSearchPress?: () => void;
   onScannerPress?: () => void;
   onMicPress?: () => void;
   onFilterPress?: () => void;
   placeholder?: string;
+  showMic?: boolean;
+  showScanner?: boolean;
 }
 
 export const HomeHeaderSearchBar = memo(({
@@ -15,10 +17,12 @@ export const HomeHeaderSearchBar = memo(({
   onScannerPress,
   onMicPress,
   placeholder = 'Search products, brands & categories...',
-}: Props) => {
+  showMic = true,
+  showScanner = true,
+}: HomeHeaderSearchBarProps) => {
   return (
     <View style={styles.container}>
-      {/* Pure White Search Input Pill */}
+      {/* Search Input Pill */}
       <TouchableOpacity
         activeOpacity={0.95}
         onPress={onSearchPress}
@@ -28,23 +32,27 @@ export const HomeHeaderSearchBar = memo(({
         <Text style={styles.placeholder} numberOfLines={1}>
           {placeholder}
         </Text>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onMicPress}
-          style={styles.innerMicBtn}
-        >
-          <Mic size={19} color="#64748B" />
-        </TouchableOpacity>
+        {showMic && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onMicPress}
+            style={styles.innerMicBtn}
+          >
+            <Mic size={19} color="#64748B" />
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
 
-      {/* QR / Scanner Button (Crisp White Icon on Gradient) */}
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onScannerPress}
-        style={styles.scannerBtn}
-      >
-        <QrCode size={22} color="#FFFFFF" strokeWidth={2.2} />
-      </TouchableOpacity>
+      {/* QR / Scanner Button */}
+      {showScanner && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onScannerPress}
+          style={styles.scannerBtn}
+        >
+          <QrCode size={22} color="#FFFFFF" strokeWidth={2.2} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 });
@@ -54,7 +62,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 6,
+    height: 44,
   },
   searchBar: {
     flex: 1,
@@ -99,3 +107,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.35)',
   },
 });
+
+export default HomeHeaderSearchBar;

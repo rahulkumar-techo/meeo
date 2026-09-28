@@ -3,13 +3,19 @@ import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { palette } from '@/theme/colors';
 
-interface Props {
+export interface HeaderGradientProps {
   isDark?: boolean;
+  colors?: readonly [string, string, ...string[]];
+  locations?: readonly [number, number, ...number[]];
 }
 
-export const HeaderGradient = memo(({ isDark = false }: Props) => {
+export const HeaderGradient = memo(({
+  isDark = false,
+  colors,
+  locations,
+}: HeaderGradientProps) => {
   // Warm luxury espresso, coffee, mocha & terracotta blend for light mode
-  const lightColors = [
+  const defaultLightColors = [
     palette.primaryDark, // #1A1614 (Deep Roast Espresso)
     palette.primary,     // #2D2621 (Warm Coffee Charcoal)
     '#4A3B32',           // #4A3B32 (Rich Mocha)
@@ -17,12 +23,15 @@ export const HeaderGradient = memo(({ isDark = false }: Props) => {
   ] as const;
 
   // Ultra-deep luxury dark espresso & warm charcoal blend for dark mode
-  const darkColors = [
+  const defaultDarkColors = [
     palette.slate[950],  // #120F0D (Deepest Espresso Dark)
     palette.slate[900],  // #1C1714 (Dark Roast)
     '#28221E',           // #28221E (Mocha Surface Dark)
     '#3D342E',           // #3D342E (Warm Coffee Undertone)
   ] as const;
+
+  const gradientColors = colors || (isDark ? defaultDarkColors : defaultLightColors);
+  const gradientLocations = locations || [0, 0.35, 0.7, 1];
 
   return (
     <View
@@ -33,10 +42,10 @@ export const HeaderGradient = memo(({ isDark = false }: Props) => {
       pointerEvents="none"
     >
       <LinearGradient
-        colors={isDark ? darkColors : lightColors}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        locations={[0, 0.35, 0.7, 1]}
+        locations={gradientLocations}
         style={StyleSheet.absoluteFill}
       />
     </View>

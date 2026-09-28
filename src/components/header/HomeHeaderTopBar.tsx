@@ -2,9 +2,15 @@ import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MapPin, ChevronDown, ScanLine, Bell, Sparkles } from 'lucide-react-native';
 
-interface Props {
-  address: string;
-  points: number;
+export interface HomeHeaderTopBarProps {
+  address?: string;
+  deliverToLabel?: string;
+  points?: number;
+  showAddress?: boolean;
+  showPoints?: boolean;
+  showScanner?: boolean;
+  showNotification?: boolean;
+  hasNotification?: boolean;
   onAddressPress?: () => void;
   onPointsPress?: () => void;
   onScannerPress?: () => void;
@@ -12,63 +18,79 @@ interface Props {
 }
 
 export const HomeHeaderTopBar = memo(({
-  address,
-  points,
+  address = 'Select Location',
+  deliverToLabel = 'Deliver to',
+  points = 0,
+  showAddress = true,
+  showPoints = true,
+  showScanner = true,
+  showNotification = true,
+  hasNotification = true,
   onAddressPress,
   onPointsPress,
   onScannerPress,
   onNotificationPress,
-}: Props) => {
+}: HomeHeaderTopBarProps) => {
   return (
     <View style={styles.container}>
       {/* Deliver To Address Button */}
-      <TouchableOpacity activeOpacity={0.8} onPress={onAddressPress} style={styles.addressBtn}>
-        <View style={styles.iconBadge}>
-          <MapPin size={15} color="#FFFFFF" />
-        </View>
-        <View style={styles.addressTextWrapper}>
-          <Text style={styles.addressLabel} numberOfLines={1}>
-            Deliver to
-          </Text>
-          <View style={styles.addressRow}>
-            <Text style={styles.addressValue} numberOfLines={1}>
-              {address}
-            </Text>
-            <ChevronDown size={14} color="#FFFFFF" style={{ marginLeft: 2, opacity: 0.9 }} />
+      {showAddress ? (
+        <TouchableOpacity activeOpacity={0.8} onPress={onAddressPress} style={styles.addressBtn}>
+          <View style={styles.iconBadge}>
+            <MapPin size={15} color="#FFFFFF" />
           </View>
-        </View>
-      </TouchableOpacity>
+          <View style={styles.addressTextWrapper}>
+            <Text style={styles.addressLabel} numberOfLines={1}>
+              {deliverToLabel}
+            </Text>
+            <View style={styles.addressRow}>
+              <Text style={styles.addressValue} numberOfLines={1}>
+                {address}
+              </Text>
+              <ChevronDown size={14} color="#FFFFFF" style={{ marginLeft: 2, opacity: 0.9 }} />
+            </View>
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <View style={{ flex: 1 }} />
+      )}
 
       {/* Action Icons */}
       <View style={styles.actionsRow}>
         {/* Points Badge */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={onPointsPress}
-          style={styles.pointsPill}
-        >
-          <Sparkles size={13} color="#FDE047" />
-          <Text style={styles.pointsText}>{points.toLocaleString()}</Text>
-        </TouchableOpacity>
+        {showPoints && (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={onPointsPress}
+            style={styles.pointsPill}
+          >
+            <Sparkles size={13} color="#FDE047" />
+            <Text style={styles.pointsText}>{points.toLocaleString()}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Scanner Button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={onScannerPress}
-          style={styles.actionBtn}
-        >
-          <ScanLine size={17} color="#FFFFFF" />
-        </TouchableOpacity>
+        {showScanner && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={onScannerPress}
+            style={styles.actionBtn}
+          >
+            <ScanLine size={17} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
 
         {/* Notification Button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={onNotificationPress}
-          style={styles.actionBtn}
-        >
-          <Bell size={17} color="#FFFFFF" />
-          <View style={styles.notificationDot} />
-        </TouchableOpacity>
+        {showNotification && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={onNotificationPress}
+            style={styles.actionBtn}
+          >
+            <Bell size={17} color="#FFFFFF" />
+            {hasNotification && <View style={styles.notificationDot} />}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -150,3 +172,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
   },
 });
+
+export default HomeHeaderTopBar;

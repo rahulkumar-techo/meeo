@@ -13,6 +13,7 @@ import type {
   UpdateCartItemPayload,
   CartApiResponse,
 } from "../types/cart.types";
+import { CHECKOUT_QUERY_KEYS } from "../../checkout/hooks/checkout.hook";
 
 /**
  * Cart query key factory
@@ -54,15 +55,16 @@ export const useAddToCart = (
     mutationFn: (payload: AddToCartPayload) => CartApiService.addToCart(payload),
     onSuccess: (...args: any[]) => {
       const serverResponse = args[0];
-      // If server returns updated cart structure, update cache immediately
       if (serverResponse?.data?.items && Array.isArray(serverResponse.data.items)) {
         queryClient.setQueryData(CART_QUERY_KEYS.details(), serverResponse);
       }
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
     },
     onSettled: (...args: any[]) => {
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSettled as any)?.(...args);
     },
     ...options,
@@ -70,7 +72,7 @@ export const useAddToCart = (
 };
 
 /**
- * Hook to update item quantity in cart with Optimistic UI updates (Amazon/Flipkart style)
+ * Hook to update item quantity in cart with Optimistic UI updates
  */
 export const useUpdateCartItem = (
   options?: UseMutationOptions<
@@ -147,10 +149,12 @@ export const useUpdateCartItem = (
       if (data?.data) {
         queryClient.setQueryData(CART_QUERY_KEYS.details(), data);
       }
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
     },
     onSettled: (...args: any[]) => {
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSettled as any)?.(...args);
     },
     ...options,
@@ -225,10 +229,12 @@ export const useRemoveCartItem = (
       if (data?.data) {
         queryClient.setQueryData(CART_QUERY_KEYS.details(), data);
       }
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
     },
     onSettled: (...args: any[]) => {
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSettled as any)?.(...args);
     },
     ...options,
@@ -254,6 +260,7 @@ export const useClearCart = (
         },
       });
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
     },
     ...options,
@@ -261,7 +268,7 @@ export const useClearCart = (
 };
 
 /**
- * Hook to merge guest cart into user cart
+ * Hook to merge cart (if manually triggered)
  */
 export const useMergeCart = (
   options?: UseMutationOptions<CartApiResponse<Cart>, Error, any[]>
@@ -276,8 +283,10 @@ export const useMergeCart = (
         queryClient.setQueryData(CART_QUERY_KEYS.details(), serverResponse);
       }
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: CHECKOUT_QUERY_KEYS.all });
       (options?.onSuccess as any)?.(...args);
     },
     ...options,
   });
 };
+

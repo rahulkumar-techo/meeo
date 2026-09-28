@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  StyleSheet,
   StatusBar,
 } from 'react-native';
 import { ShoppingBag, Trash2 } from 'lucide-react-native';
@@ -17,7 +16,8 @@ import {
   useUpdateCartItem,
   useRemoveCartItem,
   useClearCart,
-} from '../hooks/cart.hook';
+  usePrecheckoutDataLoad,
+} from '../hooks';
 import type { CartItem } from '../types/cart.types';
 import {
   CartItemRow,
@@ -68,6 +68,9 @@ export function CartScreen() {
     if (raw.cart && Array.isArray(raw.cart.items)) return raw.cart.items;
     return [];
   }, [data]);
+
+  // Background prefetch addresses & checkout bill validation
+  usePrecheckoutDataLoad(items);
 
   const subtotal = useMemo(() => {
     if (data?.data?.summary?.subtotal !== undefined) return data.data.summary.subtotal;

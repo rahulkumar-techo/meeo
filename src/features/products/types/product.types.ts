@@ -33,15 +33,8 @@ export interface ProductImage {
   updatedAt?: string;
 }
 
-export interface ProductCategory {
-  id: string;
-  name: string;
-  slug?: string;
-  description?: string | null;
-  imageUrl?: string | null;
-  status?: string;
-  parentId?: string | null;
-}
+import type { ProductCategory } from './category.type';
+export type { ProductCategory };
 
 export interface ProductBrand {
   id: string;

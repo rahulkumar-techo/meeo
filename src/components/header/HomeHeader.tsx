@@ -1,39 +1,61 @@
 import React, { memo, useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { Platform, StyleSheet, View, StatusBar as RNStatusBar } from 'react-native';
 import Animated, {
-  useAnimatedStyle,
-  interpolate,
   Extrapolation,
+  interpolate,
+  useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
-import {
-  HomeHeaderProps,
-  DEFAULT_CATEGORIES,
-  COLLAPSIBLE_SECTION_HEIGHT,
-  STICKY_SECTION_HEIGHT,
-  STICKY_COLLAPSED_HEIGHT,
-} from './types';
 import { HeaderGradient } from './HeaderGradient';
-import { HomeHeaderTopBar } from './HomeHeaderTopBar';
-import { HomeHeaderPromoBanner } from './HomeHeaderPromoBanner';
-import { HomeHeaderSearchBar } from './HomeHeaderSearchBar';
 import { HomeHeaderCategories } from './HomeHeaderCategories';
+import { HomeHeaderSearchBar } from './HomeHeaderSearchBar';
+import { HomeHeaderTopBar } from './HomeHeaderTopBar';
+import {
+  COLLAPSIBLE_SECTION_HEIGHT,
+  DEFAULT_CATEGORIES,
+  HomeHeaderProps,
+  TOP_BAR_HEIGHT,
+  SEARCH_BAR_HEIGHT,
+  CATEGORY_EXPANDED_HEIGHT,
+  CATEGORY_MINIMIZED_HEIGHT,
+} from './types';
 
-export * from './types';
 export * from './HeaderGradient';
+export * from './types';
 
 const HomeHeaderComponent = ({
+  // Shared Values
   scrollY: externalScrollY,
   headerOffset: externalHeaderOffset,
-  address = 'HOME Near A-one public school, N...',
-  points = 1450,
-  promoText = 'STARTS ON 9TH OCT: Extra 20% OFF',
-  promoCode = 'MEEO20',
+
+  // Sizing & Spacing Configuration
+  topInsetOffset,
+
+  // Top Bar Props
+  address = 'Select Location',
+  deliverToLabel = 'Deliver to',
+  points = 0,
+  showAddress = true,
+  showPoints = true,
+  showScanner = true,
+  showNotification = true,
+  hasNotification = true,
+
+  // Search Bar Props
+  searchPlaceholder = 'Search products, brands & categories...',
+  showSearchBar = true,
+  showMic = true,
+
+  // Category Bar Props
   categories = DEFAULT_CATEGORIES,
   activeCategoryId: controlledActiveCategoryId,
+  showCategories = true,
+  activeIndicatorColor = '#FFFFFF',
+
+  // Event Handlers
   onAddressPress,
   onPointsPress,
   onScannerPress,
@@ -42,7 +64,14 @@ const HomeHeaderComponent = ({
   onFilterPress,
   onMicPress,
   onCategorySelect,
-  onPromoPress,
+
+  // Custom Slots & Styling Overrides
+  gradientColors,
+  gradientLocations,
+  style,
+  renderCustomTopBar,
+  renderCustomSearchBar,
+  renderCustomCategories,
 }: HomeHeaderProps) => {
   const insets = useSafeAreaInsets();
   const { isDark } = useTheme();
@@ -56,59 +85,61 @@ const HomeHeaderComponent = ({
   );
   const activeCat = controlledActiveCategoryId ?? selectedCat;
 
-  const topInset = Math.max(insets.top, 12);
+  // Safe status bar top inset
+  const defaultTopInset = insets.top > 0 ? insets.top : (Platform.OS === 'android' ? (RNStatusBar.currentHeight ?? 24) : 0);
+  const topInset = topInsetOffset !== undefined ? topInsetOffset : defaultTopInset;
 
   const handleCatSelect = (id: string) => {
     setSelectedCat(id);
     onCategorySelect?.(id);
   };
 
-  // 1. Collapsible Container Animation (TopBar + Promo Banner)
-  // Fades cleanly to 0 opacity with negative translateY
-  const collapsibleAnimatedStyle = useAnimatedStyle(() => {
+  // 1. Collapsible TopBar Animation (Collapses to 0 on scroll down)
+  const topBarAnimatedStyle = useAnimatedStyle(() => {
     const height = interpolate(
       offset.value,
       [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [COLLAPSIBLE_SECTION_HEIGHT, 0],
+      [TOP_BAR_HEIGHT, 0],
       Extrapolation.CLAMP
     );
     const opacity = interpolate(
       offset.value,
-      [0, COLLAPSIBLE_SECTION_HEIGHT * 0.35, COLLAPSIBLE_SECTION_HEIGHT * 0.65],
-      [1, 0.2, 0],
-      Extrapolation.CLAMP
-    );
-    const translateY = interpolate(
-      offset.value,
-      [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [0, -25],
+      [0, COLLAPSIBLE_SECTION_HEIGHT * 0.6],
+      [1, 0],
       Extrapolation.CLAMP
     );
     const paddingBottom = interpolate(
       offset.value,
       [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [12, 0],
+      [4, 0],
       Extrapolation.CLAMP
     );
 
-    return { height, opacity, paddingBottom, transform: [{ translateY }], overflow: 'hidden' };
+    return {
+      height,
+      opacity,
+      paddingBottom,
+      overflow: 'hidden',
+    };
   });
 
-  // 2. Dynamic Outer Container Height
+  // 2. Dynamic Outer Container Height (Includes TopBar + SearchBar + Categories)
   const containerAnimatedStyle = useAnimatedStyle(() => {
-    const collapsibleHeight = interpolate(
+    const currentTopBarHeight = interpolate(
       offset.value,
       [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [COLLAPSIBLE_SECTION_HEIGHT, 0],
+      [TOP_BAR_HEIGHT, 0],
       Extrapolation.CLAMP
     );
 
-    const stickyHeight = interpolate(
-      offset.value,
-      [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [STICKY_SECTION_HEIGHT, STICKY_COLLAPSED_HEIGHT],
-      Extrapolation.CLAMP
-    );
+    const currentCategoryHeight = showCategories
+      ? interpolate(
+          offset.value,
+          [0, COLLAPSIBLE_SECTION_HEIGHT],
+          [CATEGORY_EXPANDED_HEIGHT, CATEGORY_MINIMIZED_HEIGHT],
+          Extrapolation.CLAMP
+        )
+      : 0;
 
     const shadowOpacity = interpolate(
       scrollY.value,
@@ -118,7 +149,7 @@ const HomeHeaderComponent = ({
     );
 
     return {
-      height: topInset + stickyHeight + collapsibleHeight,
+      height: topInset + (showSearchBar ? SEARCH_BAR_HEIGHT : 0) + currentTopBarHeight + currentCategoryHeight,
       shadowOpacity,
     };
   });
@@ -127,51 +158,82 @@ const HomeHeaderComponent = ({
     <Animated.View
       style={[
         styles.header,
-        {
-          paddingTop: topInset,
-        },
+        { paddingTop: topInset },
         containerAnimatedStyle,
+        style,
       ]}
       pointerEvents="box-none"
     >
-      {/* Premium Pink - Violet - Blue Gradient Background */}
-      <HeaderGradient isDark={isDark} />
+      {/* Background Gradient */}
+      <HeaderGradient
+        isDark={isDark}
+        colors={gradientColors}
+        locations={gradientLocations}
+      />
 
-      {/* A. Collapsible Top Section */}
+      {/* Section 1: Collapsible TopBar (Collapses in minimize mode) */}
       <Animated.View
-        style={[styles.collapsibleWrapper, collapsibleAnimatedStyle]}
+        style={[
+          styles.topBarWrapper,
+          topBarAnimatedStyle,
+        ]}
         pointerEvents="auto"
       >
-        <HomeHeaderTopBar
-          address={address}
-          points={points}
-          onAddressPress={onAddressPress}
-          onPointsPress={onPointsPress}
-          onScannerPress={onScannerPress}
-          onNotificationPress={onNotificationPress}
-        />
-        <HomeHeaderPromoBanner
-          promoText={promoText}
-          promoCode={promoCode}
-          onPromoPress={onPromoPress}
-        />
+        {renderCustomTopBar ? (
+          renderCustomTopBar()
+        ) : (
+          <HomeHeaderTopBar
+            address={address}
+            deliverToLabel={deliverToLabel}
+            points={points}
+            showAddress={showAddress}
+            showPoints={showPoints}
+            showScanner={showScanner}
+            showNotification={showNotification}
+            hasNotification={hasNotification}
+            onAddressPress={onAddressPress}
+            onPointsPress={onPointsPress}
+            onScannerPress={onScannerPress}
+            onNotificationPress={onNotificationPress}
+          />
+        )}
       </Animated.View>
 
-      {/* B. Sticky Section (Search Bar + Category morphing) */}
-      <View style={styles.stickyWrapper} pointerEvents="auto">
-        <HomeHeaderSearchBar
-          onSearchPress={onSearchPress}
-          onScannerPress={onScannerPress}
-          onMicPress={onMicPress}
-          onFilterPress={onFilterPress}
-        />
-        <HomeHeaderCategories
-          categories={categories}
-          activeCategoryId={activeCat}
-          offset={offset}
-          onCategorySelect={handleCatSelect}
-        />
-      </View>
+      {/* Section 2: SearchBar (Always visible in both normal and minimized modes) */}
+      {showSearchBar && (
+        <View style={styles.searchBarWrapper} pointerEvents="auto">
+          {renderCustomSearchBar ? (
+            renderCustomSearchBar()
+          ) : (
+            <HomeHeaderSearchBar
+              placeholder={searchPlaceholder}
+              showMic={showMic}
+              showScanner={showScanner}
+              onSearchPress={onSearchPress}
+              onScannerPress={onScannerPress}
+              onMicPress={onMicPress}
+              onFilterPress={onFilterPress}
+            />
+          )}
+        </View>
+      )}
+
+      {/* Section 3: Categories Bar (Collapses icons to text-only tabs in minimize mode) */}
+      {showCategories && (
+        <View style={styles.categoriesWrapper} pointerEvents="auto">
+          {renderCustomCategories ? (
+            renderCustomCategories()
+          ) : (
+            <HomeHeaderCategories
+              categories={categories}
+              activeCategoryId={activeCat}
+              offset={offset}
+              activeIndicatorColor={activeIndicatorColor}
+              onCategorySelect={handleCatSelect}
+            />
+          )}
+        </View>
+      )}
     </Animated.View>
   );
 };
@@ -183,7 +245,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#1E1B4B',
@@ -193,15 +254,17 @@ const styles = StyleSheet.create({
       android: { elevation: 6 },
     }),
   },
-  collapsibleWrapper: {
-    paddingHorizontal: 16,
-    height: COLLAPSIBLE_SECTION_HEIGHT,
-    justifyContent: 'flex-start',
-    gap: 8,
-    paddingBottom: 12,
+  topBarWrapper: {
+    paddingHorizontal: 4,
+    justifyContent: 'center',
   },
-  stickyWrapper: {
-    paddingHorizontal: 16,
+  searchBarWrapper: {
+    paddingHorizontal: 4,
+    height: SEARCH_BAR_HEIGHT,
+    justifyContent: 'center',
+  },
+  categoriesWrapper: {
+    paddingHorizontal: 0,
   },
 });
 

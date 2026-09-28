@@ -1,5 +1,6 @@
 import React, { memo, useRef, useEffect, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   SharedValue,
   useSharedValue,
@@ -10,12 +11,18 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { HomeHeaderCategory, COLLAPSIBLE_SECTION_HEIGHT } from './types';
+import {
+  HomeHeaderCategory,
+  COLLAPSIBLE_SECTION_HEIGHT,
+  CATEGORY_EXPANDED_HEIGHT,
+  CATEGORY_MINIMIZED_HEIGHT,
+} from './types';
 
-interface Props {
+export interface HomeHeaderCategoriesProps {
   categories: HomeHeaderCategory[];
   activeCategoryId: string;
   offset?: SharedValue<number>;
+  activeIndicatorColor?: string;
   onCategorySelect?: (categoryId: string) => void;
 }
 
@@ -23,10 +30,12 @@ export const HomeHeaderCategories = memo(({
   categories,
   activeCategoryId,
   offset,
+  activeIndicatorColor = '#FFFFFF',
   onCategorySelect,
-}: Props) => {
+}: HomeHeaderCategoriesProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [localActiveId, setLocalActiveId] = useState(activeCategoryId);
   const layoutsRef = useRef<{ [id: string]: { x: number; width: number } }>({});
 
   const indicatorX = useSharedValue(0);
@@ -34,7 +43,7 @@ export const HomeHeaderCategories = memo(({
   const indicatorOpacity = useSharedValue(0);
   const hasInitialized = useRef(false);
 
-  // Smoothly move indicator to the target category
+  // Move indicator to active category position
   const animateToCategory = useCallback((id: string, immediate = false) => {
     const layout = layoutsRef.current[id];
     if (!layout || layout.width === 0) return;
@@ -42,20 +51,20 @@ export const HomeHeaderCategories = memo(({
     if (immediate || !hasInitialized.current) {
       indicatorX.value = layout.x;
       indicatorWidth.value = layout.width;
-      indicatorOpacity.value = withTiming(1, { duration: 120 });
+      indicatorOpacity.value = withTiming(1, { duration: 80 });
       hasInitialized.current = true;
     } else {
       indicatorX.value = withSpring(layout.x, {
-        damping: 22,
-        stiffness: 280,
-        mass: 0.5,
+        damping: 24,
+        stiffness: 360,
+        mass: 0.35,
       });
       indicatorWidth.value = withSpring(layout.width, {
-        damping: 22,
-        stiffness: 280,
-        mass: 0.5,
+        damping: 24,
+        stiffness: 360,
+        mass: 0.35,
       });
-      indicatorOpacity.value = withTiming(1, { duration: 80 });
+      indicatorOpacity.value = withTiming(1, { duration: 50 });
     }
 
     // Auto-scroll to center the active category
@@ -75,66 +84,62 @@ export const HomeHeaderCategories = memo(({
     }
   };
 
-  // Re-animate when activeCategoryId changes
+  // Sync activeCategoryId changes
   useEffect(() => {
+    setLocalActiveId(activeCategoryId);
     animateToCategory(activeCategoryId);
   }, [activeCategoryId, animateToCategory]);
 
+  // Instant tap handler
   const handlePress = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setLocalActiveId(id);
+    animateToCategory(id);
     onCategorySelect?.(id);
   };
 
-  // Animated sliding indicator style
+  // Sliding underline indicator animation
   const indicatorAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: indicatorX.value }],
       width: indicatorWidth.value,
       opacity: indicatorOpacity.value,
+      backgroundColor: activeIndicatorColor,
     };
   });
 
-  // Animate the icon collapse on scroll (Expanded: Icon + Text -> Collapsed: Text only)
+  // Animated icon container: collapses cleanly in minimize mode
   const iconAnimatedStyle = useAnimatedStyle(() => {
-    if (!offset) return { height: 26, opacity: 1, marginBottom: 2 };
+    if (!offset) return { height: 44, opacity: 1 };
 
     const height = interpolate(
       offset.value,
-      [0, COLLAPSIBLE_SECTION_HEIGHT * 0.6],
-      [26, 0],
+      [0, COLLAPSIBLE_SECTION_HEIGHT],
+      [44, 0],
       Extrapolation.CLAMP
     );
-
     const opacity = interpolate(
       offset.value,
-      [0, COLLAPSIBLE_SECTION_HEIGHT * 0.45],
-      [1, 0],
-      Extrapolation.CLAMP
-    );
-
-    const marginBottom = interpolate(
-      offset.value,
       [0, COLLAPSIBLE_SECTION_HEIGHT * 0.6],
-      [2, 0],
+      [1, 0],
       Extrapolation.CLAMP
     );
 
     return {
       height,
       opacity,
-      marginBottom,
       overflow: 'hidden',
     };
   });
 
-  // Animate the category container height (54px expanded -> 42px collapsed)
+  // Animated category bar container height (74px expanded -> 32px minimized)
   const containerAnimatedStyle = useAnimatedStyle(() => {
-    if (!offset) return { height: 54 };
+    if (!offset) return { height: CATEGORY_EXPANDED_HEIGHT };
 
     const height = interpolate(
       offset.value,
       [0, COLLAPSIBLE_SECTION_HEIGHT],
-      [54, 42],
+      [CATEGORY_EXPANDED_HEIGHT, CATEGORY_MINIMIZED_HEIGHT],
       Extrapolation.CLAMP
     );
 
@@ -151,6 +156,7 @@ export const HomeHeaderCategories = memo(({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="always"
       >
         {/* Smooth Sliding Active Category Underline */}
         <Animated.View
@@ -159,48 +165,60 @@ export const HomeHeaderCategories = memo(({
         />
 
         {categories.map((cat) => {
-          const isSelected = activeCategoryId === cat.id;
+          const isSelected = (localActiveId || activeCategoryId) === cat.id;
           const IconComponent = cat.icon;
 
           return (
             <TouchableOpacity
               key={cat.id}
-              activeOpacity={0.75}
+              activeOpacity={0.7}
+              delayPressIn={0}
               onPress={() => handlePress(cat.id)}
               onLayout={(e) => handleItemLayout(cat.id, e)}
               style={styles.item}
             >
-              {/* Icon Container with subtle active glow */}
+              {/* Category Icon / Image Container (Larger, human-visible, collapses in minimize mode) */}
               <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
                 <View
                   style={[
                     styles.iconBox,
                     isSelected
                       ? {
-                          backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                          borderColor: 'rgba(255, 255, 255, 0.5)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.32)',
+                          borderColor: '#FFFFFF',
                         }
                       : {
-                          backgroundColor: 'transparent',
-                          borderColor: 'transparent',
+                          backgroundColor: 'rgba(255, 255, 255, 0.16)',
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
                         },
                   ]}
                 >
-                  <IconComponent
-                    size={18}
-                    color={isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.85)'}
-                  />
+                  {cat.imageUrl ? (
+                    <Image
+                      source={{ uri: cat.imageUrl }}
+                      style={styles.categoryImage}
+                      contentFit="cover"
+                      priority="high"
+                      cachePolicy="memory-disk"
+                      transition={100}
+                    />
+                  ) : IconComponent ? (
+                    <IconComponent
+                      size={22}
+                      color={isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.95)'}
+                    />
+                  ) : null}
                   {cat.isHot && <View style={styles.hotDot} />}
                 </View>
               </Animated.View>
 
-              {/* Category Name */}
+              {/* Category Name (Visible in both normal and minimized modes) */}
               <Text
                 style={[
                   styles.name,
                   isSelected
                     ? { color: '#FFFFFF', fontWeight: '800' }
-                    : { color: 'rgba(255, 255, 255, 0.82)', fontWeight: '600' },
+                    : { color: 'rgba(255, 255, 255, 0.85)', fontWeight: '600' },
                 ]}
                 numberOfLines={1}
               >
@@ -216,67 +234,72 @@ export const HomeHeaderCategories = memo(({
 
 const styles = StyleSheet.create({
   container: {
-    height: 54,
     justifyContent: 'center',
   },
   scrollContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    gap: 8,
+    paddingHorizontal: 4,
+    gap: 4,
     position: 'relative',
   },
   item: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
-    paddingTop: 2,
-    paddingBottom: 6,
+    paddingHorizontal: 4,
+    paddingTop: 1,
+    paddingBottom: 4,
   },
   slidingIndicator: {
     position: 'absolute',
-    bottom: 2,
+    bottom: 1,
     left: 0,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#FFFFFF',
+    height: 2.5,
+    borderRadius: 1.25,
     shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.8,
     shadowRadius: 3,
-    elevation: 3,
-    zIndex: 10,
+    elevation: 6,
+    zIndex: 99,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 26,
-    marginBottom: 2,
+    height: 44,
+    marginBottom: 3,
   },
   iconBox: {
-    width: 26,
-    height: 26,
-    borderRadius: 7,
-    borderWidth: 1,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1.2,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    overflow: 'hidden',
+  },
+  categoryImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
   },
   name: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 14,
     includeFontPadding: false,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
     textAlign: 'center',
   },
   hotDot: {
     position: 'absolute',
     top: -2,
     right: -2,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#FDE047',
   },
 });
 
+export default HomeHeaderCategories;

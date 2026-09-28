@@ -16,7 +16,6 @@ import type { Product, ProductVariant } from '../types/product.types';
 import { useAddToCart } from '@/features/cart';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { useTheme } from '@/theme';
-import { DUMMY_100_PRODUCTS } from '@/temp_data/dummyProducts';
 
 // Modular product-details components
 import {
@@ -61,40 +60,13 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
     },
   });
 
-  // Extract product object from API response or fallback to dummy
+  // Extract real product object from API response
   const product: Product | null = useMemo(() => {
     if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
       return data.data as Product;
     }
-    // Fallback in dev if matching ID found in dummy dataset
-    const dummyMatch = DUMMY_100_PRODUCTS.find((p) => p.id === productId);
-    if (dummyMatch) {
-      return {
-        ...dummyMatch,
-        name: dummyMatch.title,
-        description:
-          'High-performance product engineered with premium materials for maximum durability and everyday excellence.',
-        specifications: {
-          Overview: {
-            Brand: dummyMatch.brand,
-            Model: dummyMatch.title,
-            Rating: `${dummyMatch.rating} / 5.0`,
-          },
-        },
-        images: [{ id: '1', url: dummyMatch.imageUrl }],
-        variants: [
-          {
-            id: 'v1',
-            sku: 'DEFAULT',
-            price: dummyMatch.price,
-            compareAtPrice: dummyMatch.originalPrice,
-            status: 'ACTIVE',
-          },
-        ],
-      } as unknown as Product;
-    }
     return null;
-  }, [data, productId]);
+  }, [data]);
 
   // Gallery images list
   const galleryImages = useMemo(() => {

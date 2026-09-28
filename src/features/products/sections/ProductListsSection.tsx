@@ -15,7 +15,6 @@ import { SkeletonProductCard } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useTheme } from '@/theme';
-import { DUMMY_100_PRODUCTS } from '@/temp_data/dummyProducts';
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList
@@ -33,7 +32,6 @@ export interface ProductListsSectionProps {
   estimatedItemSize?: number;
   showsVerticalScrollIndicator?: boolean;
   scrollEventThrottle?: number;
-  fallbackToDummyData?: boolean;
   refreshing?: boolean;
   onRefresh?: () => Promise<any> | void;
   progressViewOffset?: number;
@@ -51,7 +49,6 @@ export function ProductListsSection({
   estimatedItemSize = 290,
   showsVerticalScrollIndicator = false,
   scrollEventThrottle = 16,
-  fallbackToDummyData = true,
   refreshing: externalRefreshing,
   onRefresh: externalOnRefresh,
   progressViewOffset = 0,
@@ -63,6 +60,7 @@ export function ProductListsSection({
   const {
     data,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch,
@@ -93,27 +91,19 @@ export function ProductListsSection({
   // Extract products array from REST API response
   const products: Product[] = useMemo(() => {
     const rawData = data?.data;
-    let items: Product[] = [];
 
     if (Array.isArray(rawData)) {
-      items = rawData;
-    } else if (Array.isArray(rawData?.items)) {
-      items = rawData.items;
-    } else if (Array.isArray(data)) {
-      items = data as Product[];
+      return rawData;
     }
-
-    if (items.length > 0) {
-      return items;
+    if (Array.isArray(rawData?.items)) {
+      return rawData.items;
     }
-
-    // Use dummy data fallback only when query is complete and offline or no records returned
-    if (!isLoading && fallbackToDummyData && (!data || items.length === 0)) {
-      return DUMMY_100_PRODUCTS.slice(0, 20) as unknown as Product[];
+    if (Array.isArray(data)) {
+      return data as Product[];
     }
 
     return [];
-  }, [data, isLoading, fallbackToDummyData]);
+  }, [data]);
 
   const keyExtractor = useCallback(
     (item: Product, index: number) => item.id || `product-${index}`,
@@ -135,14 +125,10 @@ export function ProductListsSection({
     [onProductPress, onWishlistToggle]
   );
 
-  // Initial loading skeleton grid
-  if (isLoading && products.length === 0) {
-    return (
-      <View
-        className="flex-1 bg-background dark:bg-background-dark"
-        style={contentContainerStyle}
-      >
-        {ListHeaderComponent}
+  // Render Skeleton, Error, or Empty state directly in ListEmptyComponent
+  const renderEmptyComponent = useCallback(() => {
+    if (isLoading || isFetching) {
+      return (
         <View className="flex-row flex-wrap mt-3">
           {Array.from({ length: 4 }).map((_, index) => (
             <View
@@ -154,36 +140,24 @@ export function ProductListsSection({
             </View>
           ))}
         </View>
-      </View>
-    );
-  }
+      );
+    }
 
-  // Error state with retry
-  if (isError && products.length === 0) {
-    return (
-      <View
-        className="flex-1 bg-background dark:bg-background-dark"
-        style={contentContainerStyle}
-      >
-        {ListHeaderComponent}
-        <ErrorState
-          title="Could not load products"
-          message={error?.message || 'Please check your connection and try again.'}
-          onRetry={() => refetch()}
-          isRetrying={isRefreshing}
-        />
-      </View>
-    );
-  }
+    if (isError) {
+      return (
+        <View className="py-6">
+          <ErrorState
+            title="Could not load products"
+            message={error?.message || 'Please check your connection and try again.'}
+            onRetry={() => refetch()}
+            isRetrying={isRefreshing}
+          />
+        </View>
+      );
+    }
 
-  // Empty state when no items found
-  if (!isLoading && products.length === 0) {
     return (
-      <View
-        className="flex-1 bg-background dark:bg-background-dark"
-        style={contentContainerStyle}
-      >
-        {ListHeaderComponent}
+      <View className="py-6">
         <EmptyState
           title="No Products Found"
           description="We couldn't find any products matching your criteria."
@@ -192,7 +166,7 @@ export function ProductListsSection({
         />
       </View>
     );
-  }
+  }, [isLoading, isFetching, isError, error, isRefreshing, refetch]);
 
   return (
     <View className="flex-1 bg-background dark:bg-background-dark">
@@ -203,7 +177,8 @@ export function ProductListsSection({
         estimatedItemSize={estimatedItemSize}
         numColumns={numColumns}
         ListHeaderComponent={ListHeaderComponent}
-        ListFooterComponent={ListFooterComponent}
+        ListEmptyComponent={renderEmptyComponent}
+        ListFooterComponent={products.length > 0 ? ListFooterComponent : null}
         contentContainerStyle={contentContainerStyle}
         onScroll={onScroll}
         scrollEventThrottle={scrollEventThrottle}
