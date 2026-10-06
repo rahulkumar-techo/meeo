@@ -25,8 +25,3 @@ declare module 'react-native' {
     className?: string;
   }
 }
-
-declare module '*.css' {
-  const content: any;
-  export default content;
-}
