@@ -5,6 +5,7 @@ import {
   RefreshControl,
   StyleProp,
   ViewStyle,
+  Platform,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { FlashList } from '@shopify/flash-list';
@@ -46,7 +47,7 @@ export function ProductListsSection({
   onProductPress,
   onWishlistToggle,
   numColumns = 2,
-  estimatedItemSize = 220,
+  estimatedItemSize = 295,
   showsVerticalScrollIndicator = false,
   scrollEventThrottle = 16,
   refreshing: externalRefreshing,
@@ -111,7 +112,7 @@ export function ProductListsSection({
   );
 
   const renderProductItem = useCallback(
-    ({ item }: { item: Product; index: number }) => (
+    ({ item }: { item: Product }) => (
       <View
         style={{
           flex: 1 / numColumns,
@@ -121,7 +122,7 @@ export function ProductListsSection({
       >
         <ProductCard
           product={item}
-          onPress={() => onProductPress?.(item)}
+          onPress={onProductPress}
         />
       </View>
     ),
@@ -169,7 +170,7 @@ export function ProductListsSection({
         />
       </View>
     );
-  }, [isLoading, isFetching, isError, error, isRefreshing, refetch]);
+  }, [isLoading, isFetching, isError, error, isRefreshing, refetch, numColumns]);
 
   return (
     <View className="flex-1 bg-background dark:bg-background-dark">
@@ -177,8 +178,11 @@ export function ProductListsSection({
         data={products}
         keyExtractor={keyExtractor}
         renderItem={renderProductItem}
+        getItemType={() => 'product'}
         estimatedItemSize={estimatedItemSize}
         numColumns={numColumns}
+        drawDistance={350}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={renderEmptyComponent}
         ListFooterComponent={products.length > 0 ? ListFooterComponent : null}

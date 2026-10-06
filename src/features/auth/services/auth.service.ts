@@ -5,6 +5,8 @@ import { ApiRoute } from "@/routes";
 export interface LoginRequest {
     email: string;
     password: string;
+    deviceName?: string;
+    deviceId?: string;
     rememberMe?: boolean;
 }
 
@@ -24,7 +26,7 @@ export interface RegisterResponseData {
         firstName: string | null;
         lastName: string | null;
     };
-    tempOtp: string;
+    tempOtp?: string;
 }
 
 export interface VerifyOtpRequest {
@@ -33,7 +35,18 @@ export interface VerifyOtpRequest {
 }
 
 export interface VerifyOtpResponseData {
+    email?: string;
     verified: boolean;
+}
+
+export interface VerifyResetOtpRequest {
+    email: string;
+    otp: string;
+}
+
+export interface VerifyResetOtpResponseData {
+    email?: string;
+    verified?: boolean;
 }
 
 export interface ResendOtpRequest {
@@ -52,6 +65,8 @@ export interface ResetPasswordRequest {
 
 export interface GoogleAuthRequest {
     idToken?: string;
+    deviceName?: string;
+    deviceId?: string;
     accessToken?: string;
 }
 
@@ -59,11 +74,31 @@ export interface RefreshTokenRequest {
     refreshToken?: string;
 }
 
+export interface ChangePasswordRequest {
+    currentPassword: string;
+    newPassword: string;
+}
+
+export interface SetPasswordRequest {
+    password: string;
+}
+
+export interface LinkGoogleRequest {
+    idToken: string;
+}
+
+export interface AuthAccount {
+    provider: 'PASSWORD' | 'GOOGLE' | string;
+    linkedAt?: string;
+}
+
 export interface AuthResponse<T = any> {
-    success: boolean;
+    status?: string;
+    success?: boolean;
     message?: string;
     data: T;
     token?: string;
+    accessToken?: string;
     refreshToken?: string;
 }
 
@@ -139,6 +174,22 @@ export const AuthService = {
         const response = await apiClient.post<AuthResponse<T>>(
             ApiRoute.AUTH.FORGOT_PASSWORD,
             payload,
+        );
+        return response.data;
+    },
+
+    /**
+     * Pre-validate OTP for password reset.
+     */
+    verifyResetOtp: async <T = any>(
+        payload: VerifyResetOtpRequest,
+    ): Promise<AuthResponse<T>> => {
+        const response = await apiClient.post<AuthResponse<T>>(
+            ApiRoute.AUTH.VERIFY_RESET_OTP,
+            {
+                email: payload.email,
+                otp: payload.otp,
+            },
         );
         return response.data;
     },
@@ -236,11 +287,79 @@ export const AuthService = {
     },
 
     /**
-     * Retrieve active session details.
+     * Retrieve active session list.
+     */
+    getSessions: async <T = any>(): Promise<AuthResponse<T>> => {
+        const response = await apiClient.get<AuthResponse<T>>(
+            ApiRoute.AUTH.SESSIONS,
+        );
+        return response.data;
+    },
+
+    /**
+     * Alias for getSessions.
      */
     getSession: async <T = any>(): Promise<AuthResponse<T>> => {
+        return AuthService.getSessions<T>();
+    },
+
+    /**
+     * List connected sign-in methods (PASSWORD, GOOGLE).
+     */
+    getAccounts: async <T = any>(): Promise<AuthResponse<T>> => {
         const response = await apiClient.get<AuthResponse<T>>(
-            ApiRoute.AUTH.SESSION,
+            ApiRoute.AUTH.ACCOUNTS,
+        );
+        return response.data;
+    },
+
+    /**
+     * Change password for users with PASSWORD provider.
+     */
+    changePassword: async <T = any>(
+        payload: ChangePasswordRequest,
+    ): Promise<AuthResponse<T>> => {
+        const response = await apiClient.post<AuthResponse<T>>(
+            ApiRoute.AUTH.CHANGE_PASSWORD,
+            payload,
+        );
+        return response.data;
+    },
+
+    /**
+     * Set initial password for Google-only users.
+     */
+    setPassword: async <T = any>(
+        payload: SetPasswordRequest,
+    ): Promise<AuthResponse<T>> => {
+        const response = await apiClient.post<AuthResponse<T>>(
+            ApiRoute.AUTH.SET_PASSWORD,
+            payload,
+        );
+        return response.data;
+    },
+
+    /**
+     * Link Google account to current authenticated user.
+     */
+    linkGoogle: async <T = any>(
+        payload: LinkGoogleRequest,
+    ): Promise<AuthResponse<T>> => {
+        const response = await apiClient.post<AuthResponse<T>>(
+            ApiRoute.AUTH.LINK_GOOGLE,
+            payload,
+        );
+        return response.data;
+    },
+
+    /**
+     * Unlink a provider (PASSWORD or GOOGLE).
+     */
+    unlinkAccount: async <T = any>(
+        provider: string,
+    ): Promise<AuthResponse<T>> => {
+        const response = await apiClient.delete<AuthResponse<T>>(
+            ApiRoute.AUTH.UNLINK_ACCOUNT(provider),
         );
         return response.data;
     },

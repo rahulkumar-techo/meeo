@@ -27,7 +27,9 @@ export interface CartProduct {
   imageUrl?: string;
   bannerImage?: { url: string; altText?: string };
   images?: CartProductImage[];
+  categoryId?: string;
   category?: CartProductCategory | string;
+  brandId?: string;
   brand?: CartProductBrand | string;
 }
 

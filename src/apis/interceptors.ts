@@ -107,9 +107,11 @@ export function attachInterceptors(
         requestUrl.includes('/auth/login') ||
         requestUrl.includes('/auth/register') ||
         requestUrl.includes('/auth/verify-otp') ||
+        requestUrl.includes('/auth/verify-reset-otp') ||
         requestUrl.includes('/auth/resend-otp') ||
         requestUrl.includes('/auth/forgot-password') ||
         requestUrl.includes('/auth/reset-password') ||
+        requestUrl.includes('/auth/google') ||
         requestUrl.includes('/auth/refresh');
 
       // Silent 401 Refresh only for protected routes
@@ -145,11 +147,17 @@ export function attachInterceptors(
             throw new Error('Session expired. Please sign in again.');
           }
 
-          const refreshUrl = `${getBaseUrl()}/auth/refresh`;
+          const baseUrl = apiInstance.defaults.baseURL || getBaseUrl();
+          const refreshUrl = `${baseUrl}/auth/refresh`;
           const { data } = await axios.post(
             refreshUrl,
             { refreshToken: stored.refreshToken },
-            { headers: { 'Content-Type': 'application/json' } }
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-refresh-token': stored.refreshToken,
+              },
+            }
           );
 
           const resData = (data as any)?.data || data;

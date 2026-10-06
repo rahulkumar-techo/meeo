@@ -1,4 +1,4 @@
-import { CART_QUERY_KEYS } from "@/features/cart";
+import { CART_QUERY_KEYS } from "@/features/cart/hooks/cart.keys";
 import {
   useMutation,
   UseMutationOptions,
@@ -13,17 +13,9 @@ import type {
   CreateOrderResponse,
   ValidateCheckoutPayload,
 } from "../types/checkout.types";
+import { CHECKOUT_QUERY_KEYS } from "./checkout.keys";
 
-export const CHECKOUT_QUERY_KEYS = {
-  all: ["checkout"] as const,
-  validation: (payload?: ValidateCheckoutPayload) =>
-    [
-      ...CHECKOUT_QUERY_KEYS.all,
-      "validate",
-      payload?.shippingAddressId ?? "",
-      payload?.couponCode ?? "",
-    ] as const,
-};
+export * from "./checkout.keys";
 
 type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
   UseQueryOptions<TData, TError, TData, any>,

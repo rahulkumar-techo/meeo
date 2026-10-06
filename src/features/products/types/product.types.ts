@@ -1,7 +1,6 @@
 /**
  * =============================================================================
  * Product Domain Types & Customer API Interfaces
- * Reference: app-docs/product.customer.md
  * =============================================================================
  */
 
@@ -121,7 +120,7 @@ export interface Product {
   tag?: string;
   isWishlisted?: boolean;
   imageUrl?: string;
-  bannerImage?: { url: string } | null;
+  bannerImage?: { url: string; altText?: string | null; thumbnailUrl?: string } | null;
   specifications?: Record<string, any>;
   _count?: {
     variants?: number;

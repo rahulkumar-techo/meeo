@@ -4,6 +4,7 @@ import { ArrowRight, Truck, Tag, ChevronDown, ChevronUp, Sparkles, ShieldCheck }
 import { useTheme } from '@/theme';
 import { Button } from '@/components/ui';
 import type { CartItem } from '../types/cart.types';
+import { usePromoStore } from '../store/usePromoStore';
 
 export interface CartSummaryCardProps {
   items?: CartItem[];
@@ -100,8 +101,8 @@ export const CartSummaryCard = memo(function CartSummaryCard({
               }`}
             >
               {isFreeShipping
-                ? '🎉 You unlocked FREE standard delivery!'
-                : `Add ${currency}${remainingForFreeShipping.toLocaleString('en-IN')} more for FREE delivery`}
+                ? 'ðŸŽ‰ You unlocked FREE standard delivery!'
+                : `Add $₹${remainingForFreeShipping.toLocaleString('en-IN')} more for FREE delivery`}
             </Text>
           </View>
 
@@ -139,7 +140,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
         <View className="flex-row items-center gap-2">
           {!isExpanded && (
             <Text className="text-sm font-black text-slate-900 dark:text-white">
-              {currency}{formattedTotal}
+              ₹{formattedTotal}
             </Text>
           )}
           <View className="w-6 h-6 rounded-full bg-slate-200/70 dark:bg-stone-700 items-center justify-center">
@@ -162,7 +163,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
                 Total MRP {totalUnits > 0 ? `(${totalUnits} ${totalUnits === 1 ? 'item' : 'items'})` : ''}
               </Text>
               <Text className="text-xs font-semibold text-slate-900 dark:text-white">
-                {currency}{formattedMRP}
+                ₹{formattedMRP}
               </Text>
             </View>
           )}
@@ -174,7 +175,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
                 Discount on MRP
               </Text>
               <Text className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                -{currency}{formattedMRPDiscount}
+                -₹{formattedMRPDiscount}
               </Text>
             </View>
           )}
@@ -185,7 +186,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
               Bag Subtotal
             </Text>
             <Text className="text-xs font-semibold text-slate-900 dark:text-white">
-              {currency}{formattedSubtotal}
+              ₹{formattedSubtotal}
             </Text>
           </View>
 
@@ -199,7 +200,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
                 </Text>
               </View>
               <Text className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                -{currency}{formattedDiscount}
+                -₹{formattedDiscount}
               </Text>
             </View>
           )}
@@ -234,7 +235,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
             </View>
 
             <Text className="text-lg font-black tracking-tight text-[#8C5338] dark:text-[#E2B897]">
-              {currency}{formattedTotal}
+              ₹ {formattedTotal}
             </Text>
           </View>
 
@@ -243,7 +244,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
             <View className="flex-row items-center gap-1.5 mt-1 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/60">
               <Sparkles size={14} color="#16A34A" />
               <Text className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                You will save {currency}{formattedSavings} on this order
+                You will save ₹{formattedSavings} on this order
               </Text>
             </View>
           )}
@@ -278,3 +279,5 @@ export const CartSummaryCard = memo(function CartSummaryCard({
 });
 
 export default CartSummaryCard;
+
+

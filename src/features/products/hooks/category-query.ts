@@ -50,9 +50,9 @@ export const useGetAllCategory = <TData = ProductCategory[]>(
         .filter((item) => item.status === "ACTIVE")
         .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as unknown as TData;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 10 * 60 * 1000, // 5 minutes
     ...options,
   });
 };
- 
+
 

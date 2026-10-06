@@ -5,6 +5,7 @@ export const ApiRoute = {
     OTP_VERIFICATION: "/auth/verify-otp",
     RESEND_OTP: "/auth/resend-otp",
     FORGOT_PASSWORD: "/auth/forgot-password",
+    VERIFY_RESET_OTP: "/auth/verify-reset-otp",
     RESET_PASSWORD: "/auth/reset-password",
     GOOGLE_AUTH: "/auth/google",
     REFRESH: "/auth/refresh",
@@ -13,8 +14,14 @@ export const ApiRoute = {
     ME: "/auth/me",
     LOGOUT: "/auth/logout",
     LOGOUT_ALL: "/auth/logout-all",
-    SESSION: "/auth/session",
-    SESSION_ID: (sessionId: string) => `/auth/${sessionId}`,
+    SESSIONS: "/auth/sessions",
+    SESSION: "/auth/sessions",
+    SESSION_ID: (sessionId: string) => `/auth/sessions/${sessionId}`,
+    ACCOUNTS: "/auth/accounts",
+    CHANGE_PASSWORD: "/auth/password/change",
+    SET_PASSWORD: "/auth/password/set",
+    LINK_GOOGLE: "/auth/accounts/google/link",
+    UNLINK_ACCOUNT: (provider: string) => `/auth/accounts/${provider}`,
   },
 
   USER: {
@@ -105,6 +112,13 @@ export const ApiRoute = {
   COUPONS: {
     COUPON_VALIDATE: "/coupons/validate", // POST - Preview coupon discount calculation
     COUPON_HISTORY: "/coupons/my-history", // GET - My coupon redemption history
+  },
+
+  PROMOTIONS: {
+    PROMOTIONS_PREVIEW: '/promotions/preview',
+    PROMOTIONS_VALIDATECODE: '/promotions/validate-code',
+    PROMOTION_VALIDATION: '/promotions/active',
+    PRMOTION_HISTORY: '/promotions/my-history'
   },
 
   REVIEWS: {

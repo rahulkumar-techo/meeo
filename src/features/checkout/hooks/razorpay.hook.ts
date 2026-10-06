@@ -29,6 +29,7 @@ export interface InitiatePaymentOptions {
   orderNumber?: string;
   prefill?: PaymentPrefill;
   onSuccess?: (response: RazorpaySuccessResponse, orderId: string) => void | Promise<void>;
+  onCancel?: () => void;
   onError?: (error: any) => void;
 }
 
@@ -39,7 +40,16 @@ export interface RetryPaymentOptions {
   paymentMethod?: string;
   prefill?: PaymentPrefill;
   onSuccess?: (response: RazorpaySuccessResponse, orderId: string) => void | Promise<void>;
+  onCancel?: () => void;
   onError?: (error: any) => void;
+}
+
+// Check if user dismissed or pressed back on the Razorpay modal
+export function isRazorpayUserCancellation(err: any): boolean {
+  if (!err) return false;
+  const code = err.code !== undefined ? String(err.code) : '';
+  const desc = (err.description || err.message || '').toLowerCase();
+  return code === '0' || desc.includes('cancel') || desc.includes('dismiss');
 }
 
 /**
@@ -142,14 +152,26 @@ export function useRazorpayPayment() {
         return result;
       } catch (err: any) {
         setIsOpeningModal(false);
-        const errorMsg = err?.description || err?.message || 'Payment cancelled or failed';
+
+        // If user cancelled or pressed back, DO NOT mark order as failed on backend
+        if (isRazorpayUserCancellation(err)) {
+          setError(null);
+          if (options.onCancel) {
+            options.onCancel();
+          } else if (options.onError) {
+            options.onError({ ...err, isCancelled: true });
+          }
+          return null;
+        }
+
+        const errorMsg = err?.description || err?.message || 'Payment failed';
         setError(errorMsg);
 
-        // Step 6: Notify backend about failure/cancellation via TanStack mutation
+        // Only notify backend about actual gateway/bank payment failures
         try {
           await failPaymentMutation.mutateAsync({
             orderId: options.orderId,
-            failureCode: err?.code ? String(err.code) : 'USER_CANCELLED',
+            failureCode: err?.code ? String(err.code) : 'PAYMENT_FAILED',
             failureMessage: errorMsg,
           });
         } catch {
@@ -224,10 +246,22 @@ export function useRazorpayPayment() {
         return result;
       } catch (err: any) {
         setIsOpeningModal(false);
+
+        // If user cancelled or pressed back, DO NOT mark order as failed on backend
+        if (isRazorpayUserCancellation(err)) {
+          setError(null);
+          if (options.onCancel) {
+            options.onCancel();
+          } else if (options.onError) {
+            options.onError({ ...err, isCancelled: true });
+          }
+          return null;
+        }
+
         const errorMsg = err?.description || err?.message || 'Payment retry failed';
         setError(errorMsg);
 
-        // Step 6: Notify backend about retry failure via TanStack mutation
+        // Only notify backend about actual retry failure
         try {
           await failPaymentMutation.mutateAsync({
             orderId: options.orderId,

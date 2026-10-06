@@ -1,0 +1,238 @@
+name: Meeo E-Commerce CI & Android Build
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  workflow_dispatch:
+    inputs:
+      clean_cache:
+        description: "Force clear build cache"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  EXPO_PUBLIC_API_URL: https://meeo-server.onrender.com/api/v1
+  EXPO_PUBLIC_BASE_URL: https://meeo-server.onrender.com/api/v1
+  EXPO_PUBLIC_PROD_BASE_URL: https://meeo-server.onrender.com/api/v1
+  EXPO_PUBLIC_GRAPHQL_URL: https://meeo-server.onrender.com/graphql
+  EXPO_PUBLIC_PROD_GRAPHQL_URL: https://meeo-server.onrender.com/graphql
+  EAS_SKIP_AUTO_FINGERPRINT: "1"
+  NODE_PATH: "${{ github.workspace }}/node_modules"
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+jobs:
+  # ============================================================================
+  # 1. Validation & Quality Checks
+  # ============================================================================
+  validate:
+    name: 🔍 Quality & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 TypeScript Check
+        run: npm run typecheck
+
+      - name: 🧹 ESLint Check
+        run: npm run lint
+
+      - name: 🩺 Expo Doctor Check
+        run: npx expo doctor
+
+      - name: 🏗️ Export Android JS Bundle
+        run: npx expo export --platform android
+
+  # ============================================================================
+  # 2. Android APK Build with Gradle & Caching
+  # ============================================================================
+  build-android:
+    name: 🤖 Build Android APK
+    needs: validate
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🧹 Free runner disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /usr/local/share/powershell || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+          sudo rm -rf /usr/local/share/boost || true
+          sudo rm -rf "$ANDROID_HOME/system-images" "$ANDROID_HOME/emulator" || true
+          sudo docker system prune --all --force --volumes || true
+          sudo apt-get clean || true
+          echo "Disk space after cleanup:"
+          df -h
+
+      - name: ⚙️ Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: ⚙️ Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 📄 Setup google-services.json
+        run: |
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > google-services.json
+            echo "Restored google-services.json from secret."
+          elif [ ! -f "google-services.json" ]; then
+            echo '{"project_info":{"project_number":"0","project_id":"meeo-ecommerce","storage_bucket":"meeo-ecommerce.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.mrrhl02.meeo"}},"oauth_client":[],"api_key":[{"current_key":""}],"services":{}}],"configuration_version":"1"}' > google-services.json
+            echo "Created fallback google-services.json for prebuild."
+          fi
+
+      - name: 🧹 Clear Cache If Requested
+        if: ${{ inputs.clean_cache }}
+        run: |
+          echo "Force clearing local Gradle and Android cache..."
+          rm -rf ~/.gradle/caches/
+          rm -rf ~/.gradle/wrapper/
+          rm -rf android/.gradle/
+          rm -rf android/app/build/
+
+      - name: 🏗️ Generate Android Native Project (Prebuild)
+        run: |
+          npx expo prebuild --platform android --clean
+          ln -sf ../node_modules ./android/node_modules
+
+      - name: ⚙️ Configure lightweight Android native build
+        run: |
+          cat >> android/gradle.properties <<'EOF'
+          reactNativeArchitectures=arm64-v8a
+          expo.inlineModules.watchedDirectories=[]
+          org.gradle.jvmargs=-Xmx3072m -XX:MaxMetaspaceSize=512m
+          org.gradle.workers.max=2
+          org.gradle.parallel=false
+          org.gradle.daemon=false
+          EOF
+
+      - name: 🔑 Make Gradlew Executable
+        run: chmod +x ./android/gradlew
+
+      - name: 🏗️ Build Android APK
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+        run: |
+          cd android
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --max-workers=2 \
+            --no-parallel \
+            --stacktrace
+          cd ..
+
+      - name: 📦 Locate Generated APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "❌ No APK found in android/app/build/outputs/apk"
+            exit 1
+          fi
+          echo "Found APK: $APK_PATH"
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "apk_filename=$(basename "$APK_PATH")" >> $GITHUB_OUTPUT
+          echo "apk_size=$(du -h "$APK_PATH" | cut -f1)" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meeo-ecommerce-android.apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 30
+
+      # ------------------------------------------------------------------------
+      # Telegram Notification on Success
+      # ------------------------------------------------------------------------
+      - name: 📢 Telegram Notification (Android Success)
+        if: success()
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "ℹ️ TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secret not set. Skipping Telegram notification."
+            exit 0
+          fi
+
+          COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          APK_SIZE="${{ steps.find_apk.outputs.apk_size }}"
+
+          MSG="🎉 <b>Meeo E-Commerce - Android APK Ready!</b>%0A%0A"
+          MSG+="📱 <b>Platform:</b> Android (Release APK)%0A"
+          MSG+="📦 <b>File Size:</b> ${APK_SIZE}%0A"
+          MSG+="🌿 <b>Branch:</b> <code>${{ github.ref_name }}</code>%0A"
+          MSG+="👤 <b>Author:</b> ${COMMIT_AUTHOR}%0A"
+          MSG+="📝 <b>Commit:</b> <i>${COMMIT_MSG}</i>%0A%0A"
+          MSG+="📥 <a href='${RUN_URL}'>Download APK from GitHub Actions</a>"
+
+          # Send Text Message
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "parse_mode=HTML" \
+            -d "text=${MSG}"
+
+          # If APK is within Telegram upload limit (~50MB), send directly as document
+          APK_FILE="${{ steps.find_apk.outputs.apk_path }}"
+          if [ -f "$APK_FILE" ]; then
+            FILE_BYTES=$(wc -c < "$APK_FILE")
+            if [ "$FILE_BYTES" -le 48000000 ]; then
+              echo "Uploading APK file directly to Telegram chat..."
+              curl -s -F chat_id="${TELEGRAM_CHAT_ID}" \
+                   -F caption="📱 Meeo E-Commerce Android APK (${{ github.ref_name }})" \
+                   -F document=@"${APK_FILE}" \
+                   "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" || true
+            fi
+          fi
+
+      # ------------------------------------------------------------------------
+      # Telegram Notification on Failure
+      # ------------------------------------------------------------------------
+      - name: 🚨 Telegram Notification (Android Failure)
+        if: failure()
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            exit 0
+          fi
+
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          FAIL_MSG="❌ <b>Meeo E-Commerce - Android Build FAILED!</b>%0A%0A"
+          FAIL_MSG+="🌿 <b>Branch:</b> <code>${{ github.ref_name }}</code>%0A"
+          FAIL_MSG+="🔗 <a href='${RUN_URL}'>View Failed Build Logs</a>"
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "parse_mode=HTML" \
+            -d "text=${FAIL_MSG}"

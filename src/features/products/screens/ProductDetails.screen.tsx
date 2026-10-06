@@ -2,11 +2,13 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   ScrollView,
+  RefreshControl,
   TouchableOpacity,
   Share,
   Alert,
   StyleSheet,
   StatusBar,
+  Text,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,7 +29,9 @@ import {
   ProductSpecifications,
   ProductBottomBar,
   ProductDetailsSkeleton,
+  ProductOffersContent,
 } from '../components/product-details';
+import Dropdown from '@/components/dropdown/Dropdown';
 
 interface ProductDetailsScreenProps {
   productId: string;
@@ -42,10 +46,20 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
-  // Fetch real product details by ID immediately in parallel with screen slide
-  const { data, isLoading, isError, error, refetch, isRefetching } =
+  if (!productId) throw new Error("ID not found")
+
+
+  // Fetch full product details from backend API
+  const { data, isLoading, isError, error, refetch } =
     useGetProductById(productId);
+
+  const handlePullRefresh = useCallback(async () => {
+    setIsPullRefreshing(true);
+    await refetch();
+    setIsPullRefreshing(false);
+  }, [refetch]);
 
   // Add to cart mutation with automatic redirection to cart tab
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart({
@@ -62,43 +76,83 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
 
   // Extract real product object from API response
   const product: Product | null = useMemo(() => {
-    if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
-      return data.data as Product;
+    if (!data) return null;
+    const raw: any = (data as any)?.data ?? data;
+    if (raw && typeof raw === 'object' && !Array.isArray(raw) && raw.id) {
+      return raw as Product;
     }
     return null;
   }, [data]);
-
-  // Gallery images list
-  const galleryImages = useMemo(() => {
-    if (!product) return [];
-    const imgs: string[] = [];
-
-    if (product.images && product.images.length > 0) {
-      product.images.forEach((img) => {
-        if (img?.url) imgs.push(img.url);
-      });
-    }
-
-    if (imgs.length === 0 && product.bannerImage?.url) {
-      imgs.push(product.bannerImage.url);
-    }
-
-    if (imgs.length === 0 && product.imageUrl) {
-      imgs.push(product.imageUrl);
-    }
-
-    if (imgs.length === 0) {
-      imgs.push('https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80');
-    }
-
-    return imgs;
-  }, [product]);
 
   // Active selected variant and prices
   const activeVariant: ProductVariant | undefined =
     product?.variants && product.variants.length > 0
       ? product.variants[selectedVariantIndex] || product.variants[0]
       : undefined;
+
+  // Build Flipkart-style gallery images:
+  // 1. Prioritize active variant's images ONLY
+  // 2. If active variant has no separate images, match product image at variant index
+  // 3. Fallback to product's general images
+  // 4. Fallback to banner image
+  const galleryImages = useMemo(() => {
+    if (!product) return [];
+
+    // 1. If active variant has images, display ONLY this variant's images!
+    if (activeVariant?.images && activeVariant.images.length > 0) {
+      const variantList = activeVariant.images
+        .filter((img) => Boolean(img?.url))
+        .map((img) => ({
+          url: img.url,
+          thumbnailUrl: img.thumbnailUrl || img.url,
+        }));
+
+      if (variantList.length > 0) {
+        return variantList;
+      }
+    }
+
+    // 2. If this variant has an image matching its index in product.images
+    if (
+      product.images &&
+      product.images[selectedVariantIndex]?.url &&
+      product.variants &&
+      product.variants.length > 1
+    ) {
+      const matched = product.images[selectedVariantIndex];
+      return [{ url: matched.url, thumbnailUrl: matched.thumbnailUrl || matched.url }];
+    }
+
+    // 3. Fallback to product general images only if active variant has no images
+    if (product.images && product.images.length > 0) {
+      const productList = product.images
+        .filter((img) => Boolean(img?.url))
+        .map((img) => ({
+          url: img.url,
+          thumbnailUrl: img.thumbnailUrl || img.url,
+        }));
+
+      if (productList.length > 0) {
+        return productList;
+      }
+    }
+
+    // 4. Fallback to banner image if needed
+    if (product.bannerImage?.url) {
+      return [
+        {
+          url: product.bannerImage.url,
+          thumbnailUrl: product.bannerImage.thumbnailUrl || product.bannerImage.url,
+        },
+      ];
+    }
+
+    if (product.imageUrl) {
+      return [{ url: product.imageUrl }];
+    }
+
+    return [];
+  }, [product, activeVariant, selectedVariantIndex]);
 
   const currentPrice = useMemo(() => {
     if (activeVariant?.price) return Number(activeVariant.price);
@@ -112,6 +166,19 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
     return undefined;
   }, [activeVariant, product]);
 
+  // Check if current variant is active and in-stock
+  const isVariantAvailable = useMemo(() => {
+    if (!activeVariant) return false;
+    if (activeVariant.status && activeVariant.status.toUpperCase() !== 'ACTIVE') {
+      return false;
+    }
+    const qty = activeVariant.inventory?.availableQuantity;
+    if (qty !== undefined && qty !== null && qty <= 0) {
+      return false;
+    }
+    return true;
+  }, [activeVariant]);
+
   const handleShare = useCallback(async () => {
     try {
       await Share.share({
@@ -122,39 +189,43 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
     }
   }, [product]);
 
+  // When variant changes, update selection and snap carousel to the variant's first image (Flipkart style)
   const handleSelectVariant = useCallback((index: number) => {
     setSelectedVariantIndex(index);
+    setActiveImageIndex(0);
   }, []);
 
   const handleAddToCart = useCallback(() => {
-    if (!product) return;
-    const variantId =
-      activeVariant?.id ||
-      (product.variants && product.variants.length > 0
-        ? product.variants[0]?.id
-        : product.id);
+    if (!product || !activeVariant) {
+      Alert.alert('Unavailable', 'Please select an available variant.');
+      return;
+    }
 
-    if (!variantId) return;
+    if (!isVariantAvailable) {
+      Alert.alert('Unavailable', 'This product variant is currently unavailable or inactive.');
+      return;
+    }
 
     addToCart({
-      variantId,
+      variantId: activeVariant.id,
       quantity,
     });
-  }, [product, activeVariant, quantity, addToCart]);
+  }, [product, activeVariant, isVariantAvailable, quantity, addToCart]);
 
   const handleBuyNow = useCallback(() => {
-    if (!product) return;
-    const variantId =
-      activeVariant?.id ||
-      (product.variants && product.variants.length > 0
-        ? product.variants[0]?.id
-        : product.id);
+    if (!product || !activeVariant) {
+      Alert.alert('Unavailable', 'Please select an available variant.');
+      return;
+    }
 
-    if (!variantId) return;
+    if (!isVariantAvailable) {
+      Alert.alert('Unavailable', 'This product variant is currently unavailable or inactive.');
+      return;
+    }
 
     addToCart(
       {
-        variantId,
+        variantId: activeVariant.id,
         quantity,
       },
       {
@@ -163,7 +234,7 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
         },
       }
     );
-  }, [product, activeVariant, quantity, addToCart, router]);
+  }, [product, activeVariant, isVariantAvailable, quantity, addToCart, router]);
 
   // Loading Skeleton State
   if (isLoading && !product) {
@@ -196,14 +267,17 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
         <ErrorState
           title="Product not found"
           message={error?.message || 'Unable to retrieve this product.'}
-          onRetry={() => refetch()}
-          isRetrying={isRefetching}
+          onRetry={handlePullRefresh}
+          isRetrying={isPullRefreshing}
         />
       </View>
     );
   }
 
   if (!product) return null;
+
+
+
 
   return (
     <View
@@ -217,7 +291,8 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
         backgroundColor="transparent"
         translucent
       />
-
+      {/* Status bar height spacer to prevent content from rendering under translucent bar */}
+      <View style={{ height: insets.top, backgroundColor: isDark ? theme.background : '#F8FAFC' }} />
       {/* Floating Top Navigation Header */}
       <View
         style={[
@@ -268,6 +343,14 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
       {/* Main Content ScrollView */}
       <ScrollView
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isPullRefreshing}
+            onRefresh={handlePullRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
+        }
         contentContainerStyle={{
           // paddingTop: Math.max(insets.top, 12) + 56,
           paddingBottom: insets.bottom + 130,
@@ -281,25 +364,47 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
           isFeatured={product.isFeatured}
         />
 
-        {/* Modular Content Body */}
-        <View style={styles.contentBody}>
-          {/* Modular 2: Product Header Info (Title, Brand, Rating, Rupee Price) */}
-          <ProductHeaderInfo
-            product={product}
-            currentPrice={currentPrice}
-            comparePrice={comparePrice}
-            currency="₹"
-          />
-
-          {/* Modular 3: Variant Selection */}
-          {product.variants && product.variants.length > 0 && (
+        {/* Modular 2: Variant Selection - Listed right under the carousel (Flipkart / Amazon style) */}
+        {product.variants && product.variants.length > 0 && (
+          <View style={styles.variantSectionWrapper}>
             <ProductVariantSelector
               variants={product.variants}
               selectedIndex={selectedVariantIndex}
               onSelectVariant={handleSelectVariant}
               currency="₹"
+              fallbackImageUrl={galleryImages[0]?.url}
+              productImages={product.images}
             />
-          )}
+          </View>
+        )}
+
+        {/* Modular Content Body */}
+        <View style={styles.contentBody}>
+          {/* Modular 3: Product Header Info (Title, Brand, Rating, Rupee Price) */}
+          <ProductHeaderInfo
+            product={product}
+            currentPrice={currentPrice}
+            comparePrice={comparePrice}
+            availableQuantity={activeVariant?.inventory?.availableQuantity}
+            currency="₹"
+          />
+
+          <Dropdown
+            title="Apply offers for maximum savings"
+            defaultOpen={true}
+            headerBg="#1A3A6B"
+            titleColor="#FFFFFF"
+          >
+            <ProductOffersContent
+              productId={product.id}
+              variantId={activeVariant?.id ?? null}
+              categoryId={product.category?.id ?? null}
+              brandId={product.brand?.id ?? null}
+              productName={product.name}
+              unitPrice={currentPrice}
+              quantity={quantity}
+            />
+          </Dropdown>
 
           {/* Modular 4: Trust Badges & Guarantees */}
           <ProductGuarantees />
@@ -319,6 +424,7 @@ export function ProductDetailsScreen({ productId }: ProductDetailsScreenProps) {
         onQuantityChange={setQuantity}
         currency="₹"
         isAddingToCart={isAddingToCart}
+        isAvailable={isVariantAvailable}
         onAddToCart={handleAddToCart}
         onBuyNow={handleBuyNow}
       />
@@ -359,9 +465,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  variantSectionWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
   contentBody: {
     paddingHorizontal: 18,
-    paddingTop: 12,
+    paddingTop: 8,
     gap: 16,
   },
 });

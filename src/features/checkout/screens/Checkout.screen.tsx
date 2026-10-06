@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, ShieldCheck } from 'lucide-react-native';
 import { Screen } from '@/components/layout';
 import { useTheme } from '@/theme';
+import { usePromoStore } from '@/features/cart/store/usePromoStore';
 import type { UserAddress } from '@/features/address/validations/address.validation';
 import {
   CheckoutStepIndicator,
@@ -21,6 +22,7 @@ import {
 export function CheckoutScreen() {
   const router = useRouter();
   const { isDark } = useTheme();
+  const appliedCode = usePromoStore((s) => s.appliedCode);
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
@@ -108,6 +110,7 @@ export function CheckoutScreen() {
         {currentStep === 2 && selectedAddress && (
           <CheckoutReviewStep
             selectedAddress={selectedAddress}
+            promoCode={appliedCode ?? undefined}
             onChangeAddress={() => setCurrentStep(1)}
             onProceedToPayment={() => setCurrentStep(3)}
           />
@@ -116,6 +119,7 @@ export function CheckoutScreen() {
         {currentStep === 3 && selectedAddress && (
           <CheckoutPaymentStep
             selectedAddress={selectedAddress}
+            promoCode={appliedCode ?? undefined}
             onOrderSuccess={handleOrderSuccess}
           />
         )}
@@ -132,3 +136,4 @@ export function CheckoutScreen() {
 }
 
 export default CheckoutScreen;
+

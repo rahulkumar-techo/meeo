@@ -41,7 +41,8 @@ export const useGetAllProducts = <TData = ProductsResponse>(
   return useQuery({
     queryKey: PRODUCT_QUERY_KEYS.list(params),
     queryFn: () => ProductApiService.getAllProducts(params) as Promise<TData>,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always',
     ...options,
   });
 };
@@ -57,7 +58,8 @@ export const useGetProductById = <TData = ProductDetailResponse>(
     queryFn: () =>
       ProductApiService.getProductById(productId!) as Promise<TData>,
     enabled: Boolean(productId) && (options?.enabled ?? true),
-    staleTime:5,
+    staleTime: 0,
+    refetchOnMount: 'always',
     ...options,
   });
 };

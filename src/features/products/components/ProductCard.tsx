@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
 import { Image } from 'expo-image';
 import type { Product } from '../types/product.types';
 
+
+/// always keep  the first vaiant item data . 
 export interface ProductCardProps {
   product?: Product;
   id?: string;
@@ -19,12 +21,16 @@ export interface ProductCardProps {
   brand?: string;
   category?: string;
   currency?: string;
-  onPress?: () => void;
+  onPress?: (product?: any) => void;
   className?: string;
 }
 
-const FALLBACK_IMAGE_URI =
-  'https://ik.imagekit.io/ww7mydmoc/ChatGPT%20Image%20Sep%2024,%202026,%2009_28_12%20AM.png';
+import { Package } from 'lucide-react-native';
+
+// Shared module-level formatter: avoids costly Intl re-initialization on every render
+const inrFormatter = new Intl.NumberFormat('en-IN', {
+  maximumFractionDigits: 2,
+});
 
 function ProductCardComponent({
   product,
@@ -39,6 +45,14 @@ function ProductCardComponent({
 }: ProductCardProps) {
   // Resolve product title
   const title = propTitle ?? product?.name ?? product?.title ?? '';
+
+  useEffect(() => {
+    const imageUrl = product?.variants?.[0]?.images?.[0]?.url;
+
+    if (!imageUrl) return;
+    if (!product) return;
+    console.log(JSON.stringify(imageUrl, null, 2))
+  }, [product])
 
   // Resolve product brand
   const brand =
@@ -59,44 +73,47 @@ function ProductCardComponent({
       ? Number(product.variants[0].compareAtPrice)
       : product?.maxPrice ?? product?.originalPrice);
 
-  // Single source of truth for product image
-  const imageSource: string | ImageSourcePropType =
-    propImageUrl ?? product?.images?.[0]?.url ?? FALLBACK_IMAGE_URI;
+  // Single source of truth for product image (no dummy fallbacks)
+  const imageSource: string | ImageSourcePropType | undefined =
+    product?.variants?.[0]?.images?.[0]?.url;
 
   const hasDiscount = Boolean(rawOriginalPrice && rawOriginalPrice > rawPrice);
   const discountPercent = hasDiscount && rawOriginalPrice
     ? Math.round(((rawOriginalPrice - rawPrice) / rawOriginalPrice) * 100)
     : 0;
 
-  const formattedPrice = rawPrice.toLocaleString('en-IN', {
-    minimumFractionDigits: rawPrice % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedPrice = inrFormatter.format(rawPrice);
+  const formattedOriginalPrice = rawOriginalPrice ? inrFormatter.format(rawOriginalPrice) : null;
 
-  const formattedOriginalPrice = rawOriginalPrice
-    ? rawOriginalPrice.toLocaleString('en-IN', {
-      minimumFractionDigits: rawOriginalPrice % 1 === 0 ? 0 : 2,
-      maximumFractionDigits: 2,
-    })
-    : null;
+  const handlePress = useCallback(() => {
+    if (onPress) {
+      onPress(product);
+    }
+  }, [onPress, product]);
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.85}
       style={styles.cardContainer}
-      className={`bg-transparent overflow-hidden ${className}`}
     >
       {/* Product Image Container (Responsive Aspect Ratio) */}
       <View style={styles.imageBox}>
-        <Image
-          source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
-          style={styles.fullImage}
-          contentFit="cover"
-          priority="high"
-          cachePolicy="memory-disk"
-          transition={150}
-        />
+        {imageSource ? (
+          <Image
+            source={typeof imageSource === 'string' ? { uri: imageSource } : imageSource}
+            style={styles.fullImage}
+            contentFit="cover"
+            priority="normal"
+            cachePolicy="memory-disk"
+            transition={0}
+            recyclingKey={typeof imageSource === 'string' ? imageSource : undefined}
+          />
+        ) : (
+          <View style={styles.placeholderBox}>
+            <Package size={28} color="#94A3B8" />
+          </View>
+        )}
       </View>
 
       {/* Product Details */}
@@ -160,6 +177,13 @@ const styles = StyleSheet.create({
   fullImage: {
     width: '100%',
     height: '100%',
+  },
+  placeholderBox: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5EFEB',
   },
   detailsContainer: {
     paddingTop: 6,

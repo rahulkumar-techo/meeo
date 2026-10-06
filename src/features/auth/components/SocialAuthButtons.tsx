@@ -9,6 +9,9 @@ export interface SocialAuthButtonsProps {
   onApplePress?: () => void;
   onFacebookPress?: () => void;
   disabled?: boolean;
+  isGoogleLoading?: boolean;
+  isAppleLoading?: boolean;
+  isFacebookLoading?: boolean;
 }
 
 function GoogleIcon() {
@@ -55,6 +58,9 @@ export function SocialAuthButtons({
   onApplePress,
   onFacebookPress,
   disabled = false,
+  isGoogleLoading = false,
+  isAppleLoading = false,
+  isFacebookLoading = false,
 }: SocialAuthButtonsProps) {
   const { isDark } = useTheme();
 
@@ -65,7 +71,8 @@ export function SocialAuthButtons({
         variant="outline"
         size="md"
         rounded="xl"
-        disabled={disabled}
+        disabled={disabled || isGoogleLoading}
+        isLoading={isGoogleLoading}
         onPress={onGooglePress}
         leftIcon={<GoogleIcon />}
         className="flex-1 h-12 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800"
@@ -79,7 +86,8 @@ export function SocialAuthButtons({
         variant="outline"
         size="md"
         rounded="xl"
-        disabled={disabled}
+        disabled={disabled || isAppleLoading}
+        isLoading={isAppleLoading}
         onPress={onApplePress}
         leftIcon={<AppleIcon color={isDark ? "#F8FAFC" : "#0F172A"} />}
         className="flex-1 h-12 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800"
@@ -93,7 +101,8 @@ export function SocialAuthButtons({
         variant="outline"
         size="md"
         rounded="xl"
-        disabled={disabled}
+        disabled={disabled || isFacebookLoading}
+        isLoading={isFacebookLoading}
         onPress={onFacebookPress}
         leftIcon={<FacebookIcon />}
         className="flex-1 h-12 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800"

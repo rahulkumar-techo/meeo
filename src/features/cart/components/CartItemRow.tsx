@@ -2,6 +2,7 @@ import React, { useMemo, memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { Plus, Minus, Trash2 } from 'lucide-react-native';
+import { Price } from '@/components/ui';
 import { useTheme } from '@/theme';
 import type { CartItem } from '../types/cart.types';
 
@@ -179,14 +180,10 @@ export const CartItemRow = memo(function CartItemRow({
         {/* Bottom Row: Price & Quantity Stepper */}
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-base font-extrabold tracking-tight text-text-primary dark:text-text-primary-dark">
-              {currency}{formattedLineTotal}
-            </Text>
+            <Price amount={formattedLineTotal} size={16} color={isDark ? '#F8FAFC' : '#0F172A'} />
 
             {formattedComparePrice && (
-              <Text className="text-xs text-text-muted dark:text-text-muted-dark line-through font-medium">
-                {currency}{formattedComparePrice}
-              </Text>
+              <Price amount={formattedComparePrice} size={12} color={isDark ? '#64748B' : '#94A3B8'} strikethrough />
             )}
 
             {discountPercent && (

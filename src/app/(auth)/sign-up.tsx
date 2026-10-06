@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,6 +19,14 @@ import {
   useRegister,
   useGoogleAuth,
 } from '@/features/auth';
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import { configureGoogleSignIn } from '@/lib';
+
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -27,11 +35,17 @@ export default function SignUpScreen() {
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
+  const [socialError, setSocialError] = useState<string | null>(null);
+  const [isSocialPending, setIsSocialPending] = useState(false);
+
   const registerMutation = useRegister();
   const googleAuthMutation = useGoogleAuth();
 
-  const isSubmitting = registerMutation.isPending || googleAuthMutation.isPending;
+  const isRegisterSubmitting = registerMutation.isPending;
+  const isGoogleLoading = googleAuthMutation.isPending || isSocialPending;
+  const isAnySubmitting = isRegisterSubmitting || isGoogleLoading;
   const errorMessage =
+    socialError ||
     (registerMutation.error as any)?.message ||
     (googleAuthMutation.error as any)?.message ||
     null;
@@ -49,6 +63,7 @@ export default function SignUpScreen() {
   });
 
   const onSubmit = async (data: SignUpFormValues) => {
+    setSocialError(null);
     try {
       const normalizedEmail = data.email.trim().toLowerCase();
       await registerMutation.mutateAsync({
@@ -70,13 +85,55 @@ export default function SignUpScreen() {
   };
 
   const handleSocialAuth = async (provider: 'google' | 'apple' | 'facebook') => {
-    if (provider === 'google') {
-      try {
-        await googleAuthMutation.mutateAsync({});
+    if (provider !== 'google') {
+      Alert.alert(
+        'Coming Soon',
+        `${provider.charAt(0).toUpperCase() + provider.slice(1)} sign-in is not supported yet.`
+      );
+      return;
+    }
+
+    setSocialError(null);
+    setIsSocialPending(true);
+
+    try {
+      configureGoogleSignIn();
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+
+      if (isSuccessResponse(response)) {
+        const idToken = response.data.idToken;
+        if (!idToken) {
+          setSocialError('Google sign-in failed: missing ID token.');
+          return;
+        }
+
+        await googleAuthMutation.mutateAsync({ idToken });
         router.replace(AppRoute.home as any);
-      } catch {
-        // Handled by mutation error
       }
+    } catch (error: any) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.SIGN_IN_CANCELLED:
+            // Flow cancelled by user
+            break;
+          case statusCodes.IN_PROGRESS:
+            // Sign in operation already in progress
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            Alert.alert(
+              'Google Play Services',
+              'Google Play Services is not available or outdated.'
+            );
+            break;
+          default:
+            setSocialError(error.message || 'Google sign-in failed.');
+        }
+      } else {
+        setSocialError(error?.message || 'Google sign-in failed.');
+      }
+    } finally {
+      setIsSocialPending(false);
     }
   };
 
@@ -215,7 +272,8 @@ export default function SignUpScreen() {
             size="lg"
             variant="dark"
             rounded="xl"
-            isLoading={isSubmitting}
+            isLoading={isRegisterSubmitting}
+            disabled={isAnySubmitting}
             loadingText="Creating Account..."
             onPress={handleSubmit(onSubmit)}
             className="mt-1"
@@ -229,7 +287,8 @@ export default function SignUpScreen() {
 
         {/* Social Buttons */}
         <SocialAuthButtons
-          disabled={isSubmitting}
+          disabled={isAnySubmitting}
+          isGoogleLoading={isGoogleLoading}
           onGooglePress={() => handleSocialAuth('google')}
           onApplePress={() => handleSocialAuth('apple')}
           onFacebookPress={() => handleSocialAuth('facebook')}

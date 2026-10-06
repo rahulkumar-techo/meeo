@@ -5,6 +5,8 @@ import { secureStorage } from '@/lib/secureStorage';
 import { authSession } from '@/lib/auth-session';
 import { setupApiClient, setLoggingOut } from '@/apis/client';
 import { queryClient } from '@/apis/query-client';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { configureGoogleSignIn } from '@/lib/social-auth.config.lib';
 import type { User, UserRole, AuthTokens } from '@/types/auth.types';
 
 export type { User, UserRole, AuthTokens };
@@ -99,7 +101,17 @@ export function mapApiUserToStoreUser(apiUser: any): User {
 }
 
 function isNetworkFailure(error: unknown): boolean {
-  return isAxiosError(error) && (!error.response || error.code === 'ECONNABORTED');
+  if (!error) return false;
+  if ((error as any)?.isNetworkError) return true;
+  if (isAxiosError(error)) {
+    return (
+      !error.response ||
+      error.code === 'ECONNABORTED' ||
+      error.code === 'ERR_NETWORK' ||
+      error.code === 'ECONNREFUSED'
+    );
+  }
+  return false;
 }
 
 export const useAuthStore = create<UserAuthState>()((set, get) => ({
@@ -132,15 +144,33 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
   logout: async () => {
     setLoggingOut(true);
     try {
-      try {
-        await AuthService.logout();
-      } catch {
-        // Ignore network errors during logout
-      }
-      await secureStorage.clearTokens();
+      // 1. Immediately reset in-memory state and query cache so UI updates instantly
+      set({ ...initialState, isHydrated: true });
       authSession.clearSession();
       queryClient.clear();
-      set({ ...initialState, isHydrated: true });
+
+      // 2. Clear persistent secure storage (access token, refresh token, user profile)
+      const clearStoragePromise = secureStorage.clearTokens();
+
+      // 3. Clear Google Sign-In native cached credentials to avoid conflicts with new identity
+      const clearGooglePromise = (async () => {
+        try {
+          configureGoogleSignIn();
+          await GoogleSignin.signOut();
+        } catch {
+          // Ignore if user was not signed in with Google or not supported
+        }
+      })();
+
+      // 4. Invalidate session on server (capped with 2.5s timeout so poor network never freezes logout)
+      const apiLogoutPromise = Promise.race([
+        AuthService.logout(),
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]).catch(() => {
+        // Ignore network errors - client logout is guaranteed
+      });
+
+      await Promise.allSettled([clearStoragePromise, clearGooglePromise, apiLogoutPromise]);
     } finally {
       setLoggingOut(false);
     }
@@ -187,19 +217,21 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
         secureStorage.getUser<User>(),
       ]);
 
-      if (!storedTokens?.accessToken) {
+      if (!storedTokens?.accessToken && !storedTokens?.refreshToken) {
         set({ ...initialState, isHydrated: true, isLoading: false });
         return;
       }
 
-      authSession.setAccessToken(storedTokens.accessToken);
+      if (storedTokens?.accessToken) {
+        authSession.setAccessToken(storedTokens.accessToken);
+      }
       
       // Instantly restore cached user from local storage without blocking Cold Launch
       set({
-        accessToken: storedTokens.accessToken,
-        token: storedTokens.accessToken,
+        accessToken: storedTokens?.accessToken || null,
+        token: storedTokens?.accessToken || null,
         user: cachedUser || null,
-        isAuthenticated: true,
+        isAuthenticated: Boolean(storedTokens?.accessToken || storedTokens?.refreshToken),
         isHydrated: true,
         isLoading: false,
       });
@@ -228,7 +260,7 @@ export const useAuthStore = create<UserAuthState>()((set, get) => ({
           }
         })
         .catch(async (err) => {
-          if (!isNetworkFailure(err)) {
+          if (!isNetworkFailure(err) && !(err as any)?.isNetworkError) {
             const status = (err as any)?.status || (err as any)?.response?.status;
             // If token is invalid (401), reset state
             if (status === 401) {

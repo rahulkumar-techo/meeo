@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ADDRESS_QUERY_KEYS, addressApiService } from '@/features/address';
-import { CHECKOUT_QUERY_KEYS, checkoutApi } from '@/features/checkout';
+import { CHECKOUT_QUERY_KEYS } from '../../../features/checkout/hooks/checkout.keys';
+import { checkoutApi } from '../../../features/checkout/services/checkout.service';
 import type { CartItem } from '../types/cart.types';
 
 export const usePrecheckoutDataLoad = (items: CartItem[] = []) => {

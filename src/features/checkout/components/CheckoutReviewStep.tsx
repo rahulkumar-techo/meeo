@@ -10,13 +10,14 @@ import { Image } from 'expo-image';
 import { MapPin, ArrowRight, ShieldCheck, Tag } from 'lucide-react-native';
 import { Button } from '@/components/ui';
 import { useTheme } from '@/theme';
-import { useGetCart } from '@/features/cart';
+import { useGetCart } from '@/features/cart/hooks/cart.hook';
 import { useValidateCheckout } from '../hooks/checkout.hook';
 import type { UserAddress } from '@/features/address/validations/address.validation';
 import type { CartItem } from '@/features/cart/types/cart.types';
 
 export interface CheckoutReviewStepProps {
   selectedAddress: UserAddress;
+  promoCode?: string;
   onChangeAddress: () => void;
   onProceedToPayment: () => void;
 }
@@ -26,6 +27,7 @@ const FALLBACK_IMAGE_URI =
 
 export function CheckoutReviewStep({
   selectedAddress,
+  promoCode,
   onChangeAddress,
   onProceedToPayment,
 }: CheckoutReviewStepProps) {
@@ -35,6 +37,7 @@ export function CheckoutReviewStep({
   const { data: validationData, isLoading: isValidating } = useValidateCheckout({
     shippingAddressId: selectedAddress.id,
     billingAddressId: selectedAddress.id,
+    couponCode: promoCode,
     currency: 'INR',
   });
 
@@ -310,3 +313,4 @@ export function CheckoutReviewStep({
 }
 
 export default CheckoutReviewStep;
+

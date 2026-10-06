@@ -13,6 +13,7 @@ export interface ProductBottomBarProps {
   onBuyNow?: () => void;
   currency?: string;
   isAddingToCart?: boolean;
+  isAvailable?: boolean;
 }
 
 export function ProductBottomBar({
@@ -23,6 +24,7 @@ export function ProductBottomBar({
   onBuyNow,
   currency = '₹',
   isAddingToCart = false,
+  isAvailable = true,
 }: ProductBottomBarProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
@@ -78,10 +80,10 @@ export function ProductBottomBar({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => onQuantityChange(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1 || isAddingToCart}
+              disabled={quantity <= 1 || isAddingToCart || !isAvailable}
               style={[
                 styles.stepperBtn,
-                (quantity <= 1 || isAddingToCart) && { opacity: 0.3 },
+                (quantity <= 1 || isAddingToCart || !isAvailable) && { opacity: 0.3 },
               ]}
             >
               <Minus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
@@ -99,8 +101,11 @@ export function ProductBottomBar({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => onQuantityChange(quantity + 1)}
-              disabled={isAddingToCart}
-              style={[styles.stepperBtn, isAddingToCart && { opacity: 0.3 }]}
+              disabled={isAddingToCart || !isAvailable}
+              style={[
+                styles.stepperBtn,
+                (isAddingToCart || !isAvailable) && { opacity: 0.3 },
+              ]}
             >
               <Plus size={14} color={isDark ? '#F8FAFC' : '#0F172A'} />
             </TouchableOpacity>
@@ -115,14 +120,14 @@ export function ProductBottomBar({
           size="lg"
           rounded="xl"
           onPress={onAddToCart}
-          disabled={isAddingToCart}
+          disabled={!isAvailable || isAddingToCart}
           isLoading={isAddingToCart}
           loadingText="Adding to Bag..."
-          leftIcon={!isAddingToCart ? <ShoppingCart size={18} color={theme.primary} /> : undefined}
-          className="flex-1 border-primary bg-primary-light/70 dark:bg-stone-900"
+          leftIcon={isAvailable && !isAddingToCart ? <ShoppingCart size={18} color={theme.primary} /> : undefined}
+          className={`flex-1 border-primary bg-primary-light/70 dark:bg-stone-900 ${!isAvailable ? 'opacity-50' : ''}`}
           textClassName="text-primary dark:text-[#E2B897] font-bold"
         >
-          Add to Cart
+          {isAvailable ? 'Add to Cart' : 'Unavailable'}
         </Button>
 
         <Button
@@ -130,11 +135,11 @@ export function ProductBottomBar({
           size="lg"
           rounded="xl"
           onPress={onBuyNow}
-          disabled={isAddingToCart}
-          leftIcon={<ShoppingBag size={18} color="#FFFFFF" />}
-          className="flex-1"
+          disabled={!isAvailable || isAddingToCart}
+          leftIcon={isAvailable ? <ShoppingBag size={18} color="#FFFFFF" /> : undefined}
+          className={`flex-1 ${!isAvailable ? 'opacity-50' : ''}`}
         >
-          Buy Now
+          {isAvailable ? 'Buy Now' : 'Out of Stock'}
         </Button>
       </View>
     </View>

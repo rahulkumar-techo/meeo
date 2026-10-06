@@ -73,12 +73,12 @@ function RootLayoutContent() {
       <Stack
         screenOptions={screenOptions}
       >
+        <Stack.Screen name="index" />
         <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name='(protected)' />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
-          <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
       </Stack>

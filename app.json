@@ -64,7 +64,8 @@
       "expo-secure-store",
       "expo-web-browser",
       "@react-native-vector-icons/ionicons",
-      "./withUpiQueries.js"
+      "./withUpiQueries.js",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,

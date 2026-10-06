@@ -16,12 +16,7 @@ const PROD_GRAPHQL_URL =
   'https://meeo-server.onrender.com/graphql';
 
 // Local / Development URLs
-const DEV_BASE_URL =
-  process.env.EXPO_PUBLIC_LOCAL_BASE_URL ||
-  process.env.LOCAL_EXPO_PUBLIC_BASE_URL ||
-  process.env.LOCAL_EXPO_PUBLIC_BASE_UR ||
-  process.env.LOCAL_BASE_URL ||
-  PROD_BASE_URL;
+const DEV_BASE_URL ='http://192.168.79.170:5000/api/v1'
 
 const DEV_GRAPHQL_URL =
   process.env.EXPO_PUBLIC_LOCAL_GRAPHQL_URL ||
@@ -29,11 +24,14 @@ const DEV_GRAPHQL_URL =
   PROD_GRAPHQL_URL;
 
 // Active endpoints based on current environment
-// export const BASE_URL = isDevelopment ? DEV_BASE_URL : PROD_BASE_URL;
-export const BASE_URL = "https://meeo-server.onrender.com/api/v1"
+export const BASE_URL =
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  process.env.EXPO_PUBLIC_BASE_URL ||
+  PROD_BASE_URL;
+
 export const GRAPHQL_URL = isDevelopment ? DEV_GRAPHQL_URL : PROD_GRAPHQL_URL;
 
-export const getBaseUrl = (): string => BASE_URL;
+export const getBaseUrl = (): string => API_CONFIG.baseURL || BASE_URL;
 
 export const API_CONFIG = {
   baseURL: BASE_URL,

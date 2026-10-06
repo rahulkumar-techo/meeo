@@ -13,15 +13,10 @@ import type {
   UpdateCartItemPayload,
   CartApiResponse,
 } from "../types/cart.types";
-import { CHECKOUT_QUERY_KEYS } from "../../checkout/hooks/checkout.hook";
+import { CHECKOUT_QUERY_KEYS } from "../../checkout/hooks/checkout.keys";
+import { CART_QUERY_KEYS } from "./cart.keys";
 
-/**
- * Cart query key factory
- */
-export const CART_QUERY_KEYS = {
-  all: ["cart"] as const,
-  details: () => [...CART_QUERY_KEYS.all, "details"] as const,
-};
+export * from "./cart.keys";
 
 type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
   UseQueryOptions<TData, TError, TData, any>,

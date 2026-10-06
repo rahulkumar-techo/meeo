@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -31,11 +31,20 @@ export default function AccountScreen() {
   const { user } = useAuthStore();
   const { isDark, toggleTheme } = useTheme();
   const logoutMutation = useLogout();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { permissionStatus, requestPermission } = usePushNotifications();
 
   const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-    router.replace(AppRoute.signIn as any);
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logoutMutation.mutateAsync();
+    } catch {
+      // Ignored: logout state reset is already handled internally
+    } finally {
+      setIsLoggingOut(false);
+      router.replace(AppRoute.signIn as any);
+    }
   };
 
   const handleNotificationPress = async () => {
@@ -200,6 +209,9 @@ export default function AccountScreen() {
           size="lg"
           variant="outline"
           rounded="xl"
+          isLoading={isLoggingOut}
+          loadingText="Signing Out..."
+          disabled={isLoggingOut}
           onPress={handleLogout}
           leftIcon={<LogOut size={16} color="#EF4444" />}
           className="border-red-200 dark:border-red-950 bg-red-50/40 dark:bg-red-950/20"

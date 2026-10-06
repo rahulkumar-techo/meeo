@@ -7,3 +7,5 @@ export * from './ProductGuarantees';
 export * from './ProductDescription';
 export * from './ProductBottomBar';
 export * from './ProductDetailsSkeleton';
+export * from './ProductOffers';
+

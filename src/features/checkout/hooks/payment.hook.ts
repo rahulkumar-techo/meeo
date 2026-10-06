@@ -14,7 +14,7 @@ import {
   RetryPaymentPayload,
 } from "../services/payment.service";
 import type { ApiResponse } from "@/types/api-response.type";
-import { CART_QUERY_KEYS } from "@/features/cart";
+import { CART_QUERY_KEYS } from "@/features/cart/hooks/cart.keys";
 
 // ===============================
 // Query Key Factory

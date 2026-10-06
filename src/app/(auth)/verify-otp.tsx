@@ -15,6 +15,7 @@ import {
   VerifyOtpFormValues,
   useAuthStore,
   useVerifyOtp,
+  useVerifyResetOtp,
   useResendOtp,
   useForgotPassword,
 } from '@/features/auth';
@@ -28,16 +29,19 @@ export default function VerifyOtpScreen() {
   const pendingEmail = params.email || storePendingEmail;
 
   const verifyOtpMutation = useVerifyOtp();
+  const verifyResetOtpMutation = useVerifyResetOtp();
   const resendVerificationOtpMutation = useResendOtp();
   const resendPasswordResetOtpMutation = useForgotPassword();
 
   const isSubmitting =
     verifyOtpMutation.isPending ||
+    verifyResetOtpMutation.isPending ||
     resendVerificationOtpMutation.isPending ||
     resendPasswordResetOtpMutation.isPending;
 
   const errorMessage =
     (verifyOtpMutation.error as any)?.message ||
+    (verifyResetOtpMutation.error as any)?.message ||
     (resendVerificationOtpMutation.error as any)?.message ||
     (resendPasswordResetOtpMutation.error as any)?.message ||
     null;
@@ -84,14 +88,21 @@ export default function VerifyOtpScreen() {
     }
 
     if (isResetFlow) {
-      // Password reset OTP is validated atomically at POST /auth/reset-password
-      router.push({
-        pathname: AppRoute.resetPassword as any,
-        params: {
+      try {
+        await verifyResetOtpMutation.mutateAsync({
           email: pendingEmail,
           otp: data.code.trim(),
-        },
-      });
+        });
+        router.push({
+          pathname: AppRoute.resetPassword as any,
+          params: {
+            email: pendingEmail,
+            otp: data.code.trim(),
+          },
+        });
+      } catch {
+        // Handled by mutation error
+      }
       return;
     }
 

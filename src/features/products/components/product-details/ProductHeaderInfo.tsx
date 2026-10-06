@@ -9,6 +9,7 @@ export interface ProductHeaderInfoProps {
   currentPrice: number;
   comparePrice?: number;
   currency?: string;
+  availableQuantity?: number;
 }
 
 export function ProductHeaderInfo({
@@ -16,6 +17,7 @@ export function ProductHeaderInfo({
   currentPrice,
   comparePrice,
   currency = '₹',
+  availableQuantity,
 }: ProductHeaderInfoProps) {
   const { theme, isDark } = useTheme();
 
@@ -86,27 +88,57 @@ export function ProductHeaderInfo({
 
       {/* Rating & Stock Status */}
       <View style={styles.ratingStockRow}>
-        <View
-          style={[
-            styles.ratingPill,
-            { backgroundColor: isDark ? '#451A03' : '#FEF3C7' },
-          ]}
-        >
-          <Star size={13} color="#F59E0B" fill="#F59E0B" />
-          <Text style={styles.ratingScore}>
-            {(product.rating ?? 4.8).toFixed(1)}
-          </Text>
-          {typeof product.reviewCount === 'number' && (
-            <Text style={styles.ratingCount}>
-              ({product.reviewCount} reviews)
+        {typeof product.rating === 'number' && product.rating > 0 ? (
+          <View
+            style={[
+              styles.ratingPill,
+              { backgroundColor: isDark ? '#451A03' : '#FEF3C7' },
+            ]}
+          >
+            <Star size={13} color="#F59E0B" fill="#F59E0B" />
+            <Text style={styles.ratingScore}>
+              {product.rating.toFixed(1)}
             </Text>
-          )}
-        </View>
+            {typeof product.reviewCount === 'number' && product.reviewCount > 0 && (
+              <Text style={styles.ratingCount}>
+                ({product.reviewCount} reviews)
+              </Text>
+            )}
+          </View>
+        ) : null}
 
         <View style={styles.stockBadge}>
-          <View style={styles.stockDot} />
-          <Text style={styles.stockText}>
-            {product.status === 'ACTIVE' ? 'In Stock' : product.status || 'In Stock'}
+          <View
+            style={[
+              styles.stockDot,
+              {
+                backgroundColor:
+                  availableQuantity !== undefined && availableQuantity <= 0
+                    ? '#EF4444'
+                    : availableQuantity !== undefined && availableQuantity <= 5
+                    ? '#F59E0B'
+                    : '#10B981',
+              },
+            ]}
+          />
+          <Text
+            style={[
+              styles.stockText,
+              {
+                color:
+                  availableQuantity !== undefined && availableQuantity <= 0
+                    ? '#EF4444'
+                    : availableQuantity !== undefined && availableQuantity <= 5
+                    ? '#D97706'
+                    : '#10B981',
+              },
+            ]}
+          >
+            {availableQuantity !== undefined && availableQuantity <= 0
+              ? 'Out of Stock'
+              : availableQuantity !== undefined && availableQuantity <= 5
+              ? `Only ${availableQuantity} left!`
+              : 'In Stock'}
           </Text>
         </View>
       </View>

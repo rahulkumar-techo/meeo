@@ -22,7 +22,9 @@ import { checkoutService } from '../services/checkout.service';
 import { useValidateCheckout } from '../hooks/checkout.hook';
 import { useRazorpayPayment } from '../hooks/razorpay.hook';
 import { useAuthStore } from '@/features/auth';
-import { useGetCart, CART_QUERY_KEYS } from '@/features/cart';
+import { usePromoStore } from '@/features/cart/store/usePromoStore';
+import { useGetCart } from '@/features/cart/hooks/cart.hook';
+import { CART_QUERY_KEYS } from '@/features/cart/hooks/cart.keys';
 import { queryClient } from '@/apis/query-client';
 import { Button } from '@/components/ui';
 import type { UserAddress } from '@/features/address/validations/address.validation';
@@ -30,11 +32,13 @@ import type { PaymentMethod } from '../types/checkout.types';
 
 export interface CheckoutPaymentStepProps {
   selectedAddress: UserAddress;
+  promoCode?: string;
   onOrderSuccess: (orderId: string, orderNumber: string) => void;
 }
 
 export function CheckoutPaymentStep({
   selectedAddress,
+  promoCode,
   onOrderSuccess,
 }: CheckoutPaymentStepProps) {
   const router = useRouter();
@@ -46,6 +50,7 @@ export function CheckoutPaymentStep({
   const [processingStage, setProcessingStage] = useState<string>('');
 
   const { initiatePayment, isProcessing: isRazorpayLoading } = useRazorpayPayment();
+  const clearPromo = usePromoStore((s) => s.clearPromo);
 
   const isProcessing = isProcessingOrder || isRazorpayLoading;
 
@@ -53,6 +58,7 @@ export function CheckoutPaymentStep({
   const { data: validationData } = useValidateCheckout({
     shippingAddressId: selectedAddress.id,
     billingAddressId: selectedAddress.id,
+    couponCode: promoCode,
     currency: 'INR',
   });
 
@@ -81,6 +87,7 @@ export function CheckoutPaymentStep({
         shippingAddressId: selectedAddress.id,
         billingAddressId: selectedAddress.id,
         paymentMethod,
+        couponCode: promoCode,
         currency: 'INR',
       });
 
@@ -101,7 +108,8 @@ export function CheckoutPaymentStep({
             email: user?.email,
           },
           onSuccess: async () => {
-            onOrderSuccess(order.id, order.orderNumber);
+            clearPromo();
+          onOrderSuccess(order.id, order.orderNumber);
           },
         });
 
@@ -114,7 +122,8 @@ export function CheckoutPaymentStep({
         queryClient.setQueryData(CART_QUERY_KEYS.details(), null);
         queryClient.invalidateQueries({ queryKey: CART_QUERY_KEYS.all });
         queryClient.invalidateQueries({ queryKey: ['orders'] });
-        onOrderSuccess(order.id, order.orderNumber);
+        clearPromo();
+          onOrderSuccess(order.id, order.orderNumber);
       }
     } catch (err: any) {
       Alert.alert(
@@ -283,3 +292,5 @@ export function CheckoutPaymentStep({
 }
 
 export default CheckoutPaymentStep;
+
+

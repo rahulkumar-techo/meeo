@@ -4,6 +4,7 @@ import {
   LoginRequest,
   RegisterRequest,
   VerifyOtpRequest,
+  VerifyResetOtpRequest,
   ResendOtpRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -135,6 +136,19 @@ export function useVerifyOtp() {
 }
 
 /**
+ * Hook for Pre-validating Password Reset OTP
+ */
+export function useVerifyResetOtp() {
+  return useMutation({
+    mutationFn: (payload: VerifyResetOtpRequest) =>
+      AuthService.verifyResetOtp({
+        email: payload.email.trim().toLowerCase(),
+        otp: String(payload.otp).trim(),
+      }),
+  });
+}
+
+/**
  * Hook for Resending Verification OTP
  */
 export function useResendOtp() {
@@ -189,15 +203,10 @@ export function useGoogleAuth() {
  * Hook for User Logout
  */
 export function useLogout() {
-  const queryClient = useQueryClient();
   const logoutStore = useAuthStore((state) => state.logout);
 
   return useMutation({
-    mutationFn: () => AuthService.logout(),
-    onSettled: async () => {
-      await logoutStore();
-      queryClient.clear();
-    },
+    mutationFn: () => logoutStore(),
   });
 }
 

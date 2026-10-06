@@ -11,6 +11,7 @@ import { ShoppingBag, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
+import { CartCouponSection } from '../components/CartCouponSection';
 import {
   useGetCart,
   useUpdateCartItem,
@@ -222,6 +223,12 @@ export function CartScreen() {
               ))}
             </View>
 
+            {/* Coupon / Offers Section */}
+
+            <CartCouponSection items={items} subtotal={subtotal} />
+
+            
+
             {/* Price Breakdown & Checkout Card */}
             <CartSummaryCard
               items={items}
@@ -269,3 +276,4 @@ export function CartScreen() {
 }
 
 export default CartScreen;
+
