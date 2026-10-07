@@ -8,11 +8,11 @@ interface Props {
   onPromoPress?: () => void;
 }
 
-export const HomeHeaderPromoBanner = memo(({
+export const HomeHeaderPromoBanner = memo(function HomeHeaderPromoBanner({
   promoText,
   promoCode,
   onPromoPress,
-}: Props) => {
+}: Props) {
   return (
     <TouchableOpacity
       activeOpacity={0.85}

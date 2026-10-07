@@ -1,8 +1,9 @@
 /**
  * =============================================================================
  * Product Domain Types & Customer API Interfaces
- * =============================================================================
  */
+import type { ProductCategory } from './category.type';
+
 
 export interface GetProductsParams {
   page?: number;
@@ -31,9 +32,6 @@ export interface ProductImage {
   createdAt?: string;
   updatedAt?: string;
 }
-
-import type { ProductCategory } from './category.type';
-export type { ProductCategory };
 
 export interface ProductBrand {
   id: string;

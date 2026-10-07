@@ -24,12 +24,8 @@ export function ProductVariantSelector({
 }: ProductVariantSelectorProps) {
   const { theme, isDark } = useTheme();
 
-  if (!variants || variants.length <= 1) {
-    return null;
-  }
-
   // Selected variant
-  const selectedVariant = variants[selectedIndex] || variants[0];
+  const selectedVariant = variants?.[selectedIndex] || variants?.[0];
 
   // Helper to extract primary attribute name and value (e.g., colors -> "Silver White")
   const selectedLabel = useMemo(() => {
@@ -52,6 +48,11 @@ export function ProductVariantSelector({
       .filter(Boolean)
       .join(' / ');
   }, [selectedVariant, selectedIndex]);
+
+  if (!variants || variants.length <= 1) {
+    return null;
+  }
+
 
   return (
     <View style={styles.container}>

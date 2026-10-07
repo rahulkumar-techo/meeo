@@ -17,7 +17,7 @@ export interface HomeHeaderTopBarProps {
   onNotificationPress?: () => void;
 }
 
-export const HomeHeaderTopBar = memo(({
+export const HomeHeaderTopBar = memo(function HomeHeaderTopBar({
   address = 'Select Location',
   deliverToLabel = 'Deliver to',
   points = 0,
@@ -30,7 +30,7 @@ export const HomeHeaderTopBar = memo(({
   onPointsPress,
   onScannerPress,
   onNotificationPress,
-}: HomeHeaderTopBarProps) => {
+}: HomeHeaderTopBarProps) {
   return (
     <View style={styles.container}>
       {/* Deliver To Address Button */}

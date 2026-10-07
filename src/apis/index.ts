@@ -1,4 +1,4 @@
-export * from './client';
+export { api, apiClient, setupApiClient } from './client';
 export * from './config';
 export * from './errors';
 export * from './interceptors';

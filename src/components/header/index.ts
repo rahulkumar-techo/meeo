@@ -4,5 +4,5 @@ export * from './HomeHeaderTopBar';
 export * from './HomeHeaderPromoBanner';
 export * from './HomeHeaderSearchBar';
 export * from './HomeHeaderCategories';
-export * from './HomeHeader';
+export { HomeHeader } from './HomeHeader';
 export { default } from './HomeHeader';

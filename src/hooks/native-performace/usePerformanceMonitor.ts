@@ -58,13 +58,7 @@ function logTiming(
  * ```
  */
 export function useScreenProfiler(customName?: string, thresholdMs = 150) {
-  let navigationRef: any = null;
-  try {
-    navigationRef = useNavigationContainerRef();
-  } catch {
-    navigationRef = null;
-  }
-  const nav = navigationRef;
+  const nav: any = useNavigationContainerRef();
   const lastRouteRef = useRef<string>("");
 
   useEffect(() => {

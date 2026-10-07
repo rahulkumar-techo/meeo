@@ -127,7 +127,7 @@ export function CartCouponSection({ items, subtotal }: CartCouponSectionProps) {
         >
           <CheckCircle size={15} color="#16A34A" />
           <View style={styles.appliedBody}>
-            <Text style={[styles.appliedCode, { color: '#16A34A' }]}>"{appliedCode}"</Text>
+            <Text style={[styles.appliedCode, { color: '#16A34A' }]}>{`"${appliedCode}"`}</Text>
             {preview.totalDiscount > 0 && (
               <View style={styles.savingRow}>
                 <Text style={[styles.appliedSaving, { color: savingColor }]}>You save </Text>

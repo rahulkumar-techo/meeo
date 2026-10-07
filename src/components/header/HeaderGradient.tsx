@@ -9,11 +9,11 @@ export interface HeaderGradientProps {
   locations?: readonly [number, number, ...number[]];
 }
 
-export const HeaderGradient = memo(({
+export const HeaderGradient = memo(function HeaderGradient({
   isDark = false,
   colors,
   locations,
-}: HeaderGradientProps) => {
+}: HeaderGradientProps) {
   // Warm luxury espresso, coffee, mocha & terracotta blend for light mode
   const defaultLightColors = [
     palette.primaryDark, // #1A1614 (Deep Roast Espresso)

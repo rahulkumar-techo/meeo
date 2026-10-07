@@ -15,8 +15,6 @@ import type {
 } from "../types/checkout.types";
 import { CHECKOUT_QUERY_KEYS } from "./checkout.keys";
 
-export * from "./checkout.keys";
-
 type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
   UseQueryOptions<TData, TError, TData, any>,
   "queryKey" | "queryFn"

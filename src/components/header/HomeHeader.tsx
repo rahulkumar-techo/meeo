@@ -23,8 +23,7 @@ import {
   CATEGORY_MINIMIZED_HEIGHT,
 } from './types';
 
-export * from './HeaderGradient';
-export * from './types';
+
 
 const HomeHeaderComponent = ({
   // Shared Values

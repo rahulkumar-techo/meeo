@@ -16,8 +16,6 @@ import type {
 import { CHECKOUT_QUERY_KEYS } from "../../checkout/hooks/checkout.keys";
 import { CART_QUERY_KEYS } from "./cart.keys";
 
-export * from "./cart.keys";
-
 type QueryOptionsWithoutKeyAndFn<TData, TError = Error> = Omit<
   UseQueryOptions<TData, TError, TData, any>,
   "queryKey" | "queryFn"

@@ -140,7 +140,7 @@ export function CartConfirmModal({
                   { color: isDark ? '#94A3B8' : '#475569' },
                 ]}
               >
-                "{itemName}"
+                {`"${itemName}"`}
               </Text>
             )}
 

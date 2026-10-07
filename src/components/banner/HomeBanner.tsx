@@ -104,7 +104,7 @@ interface Props {
 
 // Connected Progress Bar Segment
 const ProgressBarSegment = memo(
-  ({
+  function ProgressBarSegment({
     index,
     currentIndex,
     progress,
@@ -116,7 +116,7 @@ const ProgressBarSegment = memo(
     progress: SharedValue<number>;
     isDark: boolean;
     onPress: () => void;
-  }) => {
+  }) {
     const fillStyle = useAnimatedStyle(() => {
       'worklet';
       if (index < currentIndex) {
@@ -158,11 +158,11 @@ const ProgressBarSegment = memo(
 );
 
 export const HomeBanner = memo(
-  ({
+  function HomeBanner({
     banners = DEFAULT_BANNERS,
     autoPlayInterval = 4500,
     onPressBanner,
-  }: Props) => {
+  }: Props) {
     const { width } = useWindowDimensions();
     const { isDark } = useTheme();
     const scrollViewRef = useRef<Animated.ScrollView>(null);

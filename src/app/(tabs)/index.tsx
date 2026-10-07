@@ -1,17 +1,17 @@
 import { HomeBanner } from '@/components/banner/HomeBanner';
-import type { HomeHeaderCategory } from '@/components/header';
 import {
   COLLAPSIBLE_SECTION_HEIGHT,
   HomeHeader,
   STICKY_SECTION_HEIGHT,
-} from '@/components/header/HomeHeader';
+  type HomeHeaderCategory,
+} from '@/components/header';
 import { NotificationPermissionCard } from '@/features/notifications';
 import { ProductListsSection } from '@/features/products';
 import { useGetAllCategory } from '@/features/products/hooks/category-query';
 import { AppRoute } from '@/routes';
 import { useTheme } from '@/theme';
 import { useRouter } from 'expo-router';
-import { Sparkles, TrendingUp, Zap } from 'lucide-react-native';
+import { Sparkles, TrendingUp } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Platform,

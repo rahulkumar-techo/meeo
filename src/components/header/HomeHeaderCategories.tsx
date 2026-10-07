@@ -26,13 +26,13 @@ export interface HomeHeaderCategoriesProps {
   onCategorySelect?: (categoryId: string) => void;
 }
 
-export const HomeHeaderCategories = memo(({
+export const HomeHeaderCategories = memo(function HomeHeaderCategories({
   categories,
   activeCategoryId,
   offset,
   activeIndicatorColor = '#FFFFFF',
   onCategorySelect,
-}: HomeHeaderCategoriesProps) => {
+}: HomeHeaderCategoriesProps) {
   const scrollViewRef = useRef<ScrollView>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [localActiveId, setLocalActiveId] = useState(activeCategoryId);

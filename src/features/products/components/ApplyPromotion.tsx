@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -127,7 +127,7 @@ const ApplyPromotion = ({
           <CheckCircle size={15} color="#16A34A" />
           <View style={styles.savedBody}>
             <Text style={[styles.savedCode, { color: '#16A34A' }]}>
-              "{appliedCode}" saved
+              {`"${appliedCode}" saved`}
             </Text>
             {saving > 0 && (
               <View style={styles.savingRow}>

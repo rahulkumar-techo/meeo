@@ -12,14 +12,14 @@ export interface HomeHeaderSearchBarProps {
   showScanner?: boolean;
 }
 
-export const HomeHeaderSearchBar = memo(({
+export const HomeHeaderSearchBar = memo(function HomeHeaderSearchBar({
   onSearchPress,
   onScannerPress,
   onMicPress,
   placeholder = 'Search products, brands & categories...',
   showMic = true,
   showScanner = true,
-}: HomeHeaderSearchBarProps) => {
+}: HomeHeaderSearchBarProps) {
   return (
     <View style={styles.container}>
       {/* Search Input Pill */}

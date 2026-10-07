@@ -126,7 +126,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
         indicatorOpacity.value = withTiming(1, { duration: 80 });
       }
     },
-    [indicatorOpacity, indicatorWidth, indicatorX]
+    []
   );
 
   const handleTabLayout = useCallback(
