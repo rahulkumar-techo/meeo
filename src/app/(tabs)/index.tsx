@@ -198,7 +198,7 @@ export default function HomeScreen() {
         categories={categories}
         activeCategoryId={activeTab}
         onCategorySelect={handleCategorySelect}
-        onSearchPress={noop}
+        onSearchPress={() => router.push(AppRoute.search_screen as any)}
         onFilterPress={noop}
         onScannerPress={noop}
         onNotificationPress={noop}

@@ -7,7 +7,8 @@ export const AppRoute = {
   verifyOtp: "/(auth)/verify-otp",
   resetPassword: "/(auth)/reset-password",
   // 
-  product_details: "/(protected)/product/[productId]"
+  product_details: "/(protected)/product/[productId]",
+  search_screen:"/(protected)/search"
 } as const;
 
 export type AppRouteKey = keyof typeof AppRoute;
