@@ -4,7 +4,6 @@ import { ArrowRight, Truck, Tag, ChevronDown, ChevronUp, Sparkles, ShieldCheck }
 import { useTheme } from '@/theme';
 import { Button } from '@/components/ui';
 import type { CartItem } from '../types/cart.types';
-import { usePromoStore } from '../store/usePromoStore';
 
 export interface CartSummaryCardProps {
   items?: CartItem[];
@@ -33,7 +32,7 @@ export const CartSummaryCard = memo(function CartSummaryCard({
   couponDiscount = 0,
   initialExpanded = true,
 }: CartSummaryCardProps) {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
   // 1. Calculate Total Units & MRP

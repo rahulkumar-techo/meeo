@@ -12,7 +12,6 @@ export function usePushNotifications() {
   const isCardDismissed = useNotificationStore((s) => s.isCardDismissed);
   const error = useNotificationStore((s) => s.error);
 
-  const checkPermission = useNotificationStore((s) => s.checkPermission);
   const syncDeviceToken = useNotificationStore((s) => s.syncDeviceToken);
   const requestPermissionAndRegister = useNotificationStore(
     (s) => s.requestPermissionAndRegister
@@ -39,8 +38,7 @@ export function usePushNotifications() {
 
     // Listen for user interaction when tapping a notification banner
     responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        const data = response.notification.request.content.data;
+      Notifications.addNotificationResponseReceivedListener((_response) => {
         // Handle deep-link routing or custom navigation based on notification payload
       });
 

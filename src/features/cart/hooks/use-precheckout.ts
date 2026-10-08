@@ -40,11 +40,11 @@ export const usePrecheckoutDataLoad = (items: CartItem[] = []) => {
             staleTime: 1000 * 30, // 30 seconds fresh
           });
         }
-      } catch (error) {
+      } catch {
         // Silently catch background prefetch errors so cart screen is unaffected
       }
     };
 
     prefetchCheckoutData();
-  }, [items.length, queryClient]);
+  }, [items, queryClient]);
 };

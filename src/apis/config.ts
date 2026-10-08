@@ -27,7 +27,7 @@ const DEV_GRAPHQL_URL =
 export const BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ||
   process.env.EXPO_PUBLIC_BASE_URL ||
-  PROD_BASE_URL;
+  (isDevelopment ? DEV_BASE_URL : PROD_BASE_URL);
 
 export const GRAPHQL_URL = isDevelopment ? DEV_GRAPHQL_URL : PROD_GRAPHQL_URL;
 

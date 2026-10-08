@@ -81,16 +81,19 @@ export function useRazorpayPayment() {
   };
 
   // Helper for customer prefill info
-  const getPrefillData = (customPrefill?: PaymentPrefill) => {
-    const rawContact = customPrefill?.contact || user?.phone || '';
-    const cleanContact = sanitizeContact(rawContact);
+  const getPrefillData = useCallback(
+    (customPrefill?: PaymentPrefill) => {
+      const rawContact = customPrefill?.contact || user?.phone || '';
+      const cleanContact = sanitizeContact(rawContact);
 
-    return {
-      name: customPrefill?.name || user?.name || 'Customer',
-      email: customPrefill?.email || user?.email || 'customer@example.com',
-      contact: cleanContact.length === 10 ? cleanContact : '9876543210',
-    };
-  };
+      return {
+        name: customPrefill?.name || user?.name || 'Customer',
+        email: customPrefill?.email || user?.email || 'customer@example.com',
+        contact: cleanContact.length === 10 ? cleanContact : '9876543210',
+      };
+    },
+    [user]
+  );
 
   /**
    * 1. Initiate fresh payment (Initialize -> Open Razorpay -> Verify on Success -> Record on Fail)
@@ -185,7 +188,7 @@ export function useRazorpayPayment() {
         return null;
       }
     },
-    [user, initializePaymentMutation, verifyPaymentMutation, failPaymentMutation]
+    [initializePaymentMutation, verifyPaymentMutation, failPaymentMutation, getPrefillData]
   );
 
   /**
@@ -279,7 +282,7 @@ export function useRazorpayPayment() {
         return null;
       }
     },
-    [user, retryPaymentMutation, verifyPaymentMutation, failPaymentMutation]
+    [retryPaymentMutation, verifyPaymentMutation, failPaymentMutation, getPrefillData]
   );
 
   return {

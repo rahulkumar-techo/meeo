@@ -19,7 +19,6 @@ export function NotificationPermissionCard({
   const {
     shouldShowPermissionCard,
     isRegistering,
-    permissionStatus,
     requestPermission,
     dismissCard,
   } = usePushNotifications();

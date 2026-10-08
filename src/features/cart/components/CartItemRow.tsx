@@ -77,10 +77,6 @@ export const CartItemRow = memo(function CartItemRow({
     minimumFractionDigits: 0,
   });
 
-  const formattedUnitPrice = unitPrice.toLocaleString('en-IN', {
-    minimumFractionDigits: 0,
-  });
-
   const formattedComparePrice = compareAtPrice
     ? (compareAtPrice * (item.quantity || 1)).toLocaleString('en-IN', {
       minimumFractionDigits: 0,

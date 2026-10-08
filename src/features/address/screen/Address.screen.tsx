@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -50,7 +50,10 @@ export function AddressScreen() {
 
   // Queries and mutations
   const { data, isLoading, refetch } = useGetAddresses();
-  const addressList: UserAddress[] = Array.isArray(data?.data) ? data.data : [];
+  const addressList: UserAddress[] = useMemo(
+    () => (Array.isArray(data?.data) ? data.data : []),
+    [data]
+  );
 
   const [isFormView, setIsFormView] = useState<boolean>(
     params.mode === 'create' || params.mode === 'edit'

@@ -1,8 +1,6 @@
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { SharedValue } from 'react-native-reanimated';
-import { Sparkles, Shirt, Smartphone, Laptop, Sparkle, Home as HomeIcon, Flame } from 'lucide-react-native';
-
 export interface HomeHeaderCategory {
   id: string;
   name: string;

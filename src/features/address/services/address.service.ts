@@ -4,7 +4,6 @@ import { ApiResponse } from "@/types/api-response.type";
 import type {
   Address,
   UpdateAddressInput,
-  UserAddress,
   AddressCreateResponse,
   AddressListResponse,
   AddressDetailResponse,

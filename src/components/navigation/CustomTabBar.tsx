@@ -12,7 +12,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  withSpring,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -126,7 +125,7 @@ export const CustomTabBar: React.FC<CustomTabBarProps> = ({
         indicatorOpacity.value = withTiming(1, { duration: 80 });
       }
     },
-    []
+    [indicatorOpacity, indicatorWidth, indicatorX]
   );
 
   const handleTabLayout = useCallback(

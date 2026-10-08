@@ -5,7 +5,6 @@ import type {
   ProductsResponse,
   ProductDetailResponse,
   ProductAttributesResponse,
-  GenericApiResponse,
 } from "../types/product.types";
 
 /**

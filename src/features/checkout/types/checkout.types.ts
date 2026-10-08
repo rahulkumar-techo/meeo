@@ -42,7 +42,7 @@ export interface CheckoutItem {
   variantSnapshot?: {
     sku?: string;
     thumbnail?: string;
-    attributes?: Array<{ attribute: string; value: string }>;
+    attributes?: { attribute: string; value: string }[];
   };
 }
 

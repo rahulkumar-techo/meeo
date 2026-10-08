@@ -47,7 +47,7 @@ function ZoomableImage({ uri, isActive }: ZoomableImageProps) {
       translateX.value = withTiming(0, { duration: 200 });
       translateY.value = withTiming(0, { duration: 200 });
     }
-  }, [isActive]);
+  }, [isActive, scale, translateX, translateY]);
 
   // Smooth Double Tap to toggle between 1x and 2.5x
   const doubleTapGesture = Gesture.Tap()

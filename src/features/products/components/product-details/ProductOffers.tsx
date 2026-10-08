@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Tag, ChevronDown, ChevronUp, AlertCircle, Zap, IndianRupee } from 'lucide-react-native';
 import { useTheme } from '@/theme';
@@ -169,11 +169,6 @@ export function ProductOffersContent({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId, variantId, unitPrice, quantity]);
 
-  const handleCodeApplied = (preview: CartPreviewData) => {
-    setCodePreview(preview);
-    setAutoPreview(null);
-  };
-
   const handleCodeRemoved = () => {
     setCodePreview(null);
     if (!productId || unitPrice <= 0) return;
@@ -203,7 +198,6 @@ export function ProductOffersContent({
         productName={productName}
         unitPrice={unitPrice}
         quantity={quantity}
-        // onApplied={handleCodeApplied}
         onRemoved={handleCodeRemoved}
       />
 

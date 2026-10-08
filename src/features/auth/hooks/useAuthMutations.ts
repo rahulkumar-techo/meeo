@@ -9,7 +9,6 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   GoogleAuthRequest,
-  AuthResponse,
 } from '../services/auth.service';
 import { useAuthStore, mapApiUserToStoreUser } from '../store/useAuthStore';
 import type { AuthTokens } from '@/types/auth.types';

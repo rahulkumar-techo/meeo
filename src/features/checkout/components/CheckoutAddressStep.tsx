@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,7 +31,10 @@ export function CheckoutAddressStep({
   const { data, isLoading, refetch } = useGetAddresses();
   const { mutate: deleteAddress, isPending: isDeleting } = useDeleteAddress();
 
-  const addressList: UserAddress[] = Array.isArray(data?.data) ? data.data : [];
+  const addressList: UserAddress[] = useMemo(
+    () => (Array.isArray(data?.data) ? data.data : []),
+    [data]
+  );
 
   // Auto-select default or first address if none selected
   useEffect(() => {

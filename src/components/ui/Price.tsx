@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, TextStyle, ViewStyle } from 'react-native';
 import { IndianRupee } from 'lucide-react-native';
 

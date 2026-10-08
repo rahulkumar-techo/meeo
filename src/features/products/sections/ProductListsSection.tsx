@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
-  StyleSheet,
   RefreshControl,
   StyleProp,
   ViewStyle,

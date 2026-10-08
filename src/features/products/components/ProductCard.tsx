@@ -9,6 +9,8 @@ import {
 import { Image } from 'expo-image';
 import type { Product } from '../types/product.types';
 
+import { Package } from 'lucide-react-native';
+
 
 /// always keep  the first vaiant item data . 
 export interface ProductCardProps {
@@ -24,8 +26,6 @@ export interface ProductCardProps {
   onPress?: (product?: any) => void;
   className?: string;
 }
-
-import { Package } from 'lucide-react-native';
 
 // Shared module-level formatter: avoids costly Intl re-initialization on every render
 const inrFormatter = new Intl.NumberFormat('en-IN', {

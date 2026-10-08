@@ -8,6 +8,7 @@ import { authSession } from '@/lib/auth-session';
 /**
  * Primary Axios client instance.
  */
+// eslint-disable-next-line import/no-named-as-default-member
 export const api = axios.create({
   baseURL: API_CONFIG.baseURL,
   timeout: API_CONFIG.timeout,

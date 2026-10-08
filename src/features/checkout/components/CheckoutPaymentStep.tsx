@@ -4,10 +4,8 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import {
   Smartphone,
   Banknote,
@@ -15,7 +13,6 @@ import {
   Circle,
   ShieldCheck,
   Lock,
-  CreditCard,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { checkoutService } from '../services/checkout.service';
@@ -41,7 +38,6 @@ export function CheckoutPaymentStep({
   promoCode,
   onOrderSuccess,
 }: CheckoutPaymentStepProps) {
-  const router = useRouter();
   const { isDark } = useTheme();
   const user = useAuthStore((s) => s.user);
 

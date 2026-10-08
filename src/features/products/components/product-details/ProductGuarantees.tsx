@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Truck, ShieldCheck, RotateCcw, Lock } from 'lucide-react-native';
+import { Truck, ShieldCheck, RotateCcw } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 
 export function ProductGuarantees() {

@@ -24,8 +24,6 @@ export function OtpInput({
   const { isDark } = useTheme();
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  const digits = Array.from({ length }, (_, i) => value[i] || "");
-
   const handleChangeText = (text: string, index: number) => {
     const cleaned = text.replace(/[^0-9]/g, "");
 

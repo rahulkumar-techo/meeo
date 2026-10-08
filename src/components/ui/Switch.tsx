@@ -45,7 +45,7 @@ export function Switch({
 
   useEffect(() => {
     progress.value = withSpring(value ? 1 : 0, SPRING_CONFIG);
-  }, [value]);
+  }, [value, progress]);
 
   const handlePress = () => {
     if (disabled) return;

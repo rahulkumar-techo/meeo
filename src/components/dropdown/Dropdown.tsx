@@ -97,7 +97,7 @@ const Dropdown = ({
         });
 
         setIsOpen(defaultOpen);
-    }, [defaultOpen]);
+    }, [defaultOpen, progress]);
 
     /**
      * Content animation.
