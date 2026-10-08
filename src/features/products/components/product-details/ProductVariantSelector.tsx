@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
-import { Check, Layers } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import type { ProductVariant } from '../../types/product.types';
 
@@ -19,13 +19,26 @@ export function ProductVariantSelector({
   selectedIndex,
   onSelectVariant,
   currency = '₹',
-  fallbackImageUrl,
-  productImages,
 }: ProductVariantSelectorProps) {
   const { theme, isDark } = useTheme();
 
   // Selected variant
   const selectedVariant = variants?.[selectedIndex] || variants?.[0];
+
+  // Dynamic attribute category title (e.g., Color, Size, Storage, or Option)
+  const attributeTitle = useMemo(() => {
+    const colorAttr = selectedVariant?.attributeValues?.find(
+      (av) =>
+        av.attributeValue?.attribute?.name?.toLowerCase().includes('color') ||
+        av.attributeValue?.attribute?.name?.toLowerCase().includes('colour')
+    );
+    if (colorAttr?.attributeValue?.attribute?.name) {
+      return colorAttr.attributeValue.attribute.name;
+    }
+
+    const firstAttr = selectedVariant?.attributeValues?.[0]?.attributeValue?.attribute?.name;
+    return firstAttr || 'Option';
+  }, [selectedVariant]);
 
   // Helper to extract primary attribute name and value (e.g., colors -> "Silver White")
   const selectedLabel = useMemo(() => {
@@ -53,7 +66,6 @@ export function ProductVariantSelector({
     return null;
   }
 
-
   return (
     <View style={styles.container}>
       {/* Header: Flipkart-style Attribute Heading with dynamic active name */}
@@ -65,7 +77,7 @@ export function ProductVariantSelector({
               { color: isDark ? '#94A3B8' : '#64748B' },
             ]}
           >
-            Color / Option:{' '}
+            {attributeTitle}:{' '}
             <Text style={[styles.activeValueText, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>
               {selectedLabel}
             </Text>
@@ -74,7 +86,7 @@ export function ProductVariantSelector({
         <Text style={styles.countText}>{variants.length} options</Text>
       </View>
 
-      {/* Horizontal Scrollable Variant Cards with Image Thumbnails (Flipkart Style) */}
+      {/* Horizontal Scrollable Variant Cards (Flipkart Style) */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -83,13 +95,11 @@ export function ProductVariantSelector({
         {variants.map((variant, index) => {
           const isSelected = index === selectedIndex;
 
-          // Variant Image: from variant.images, or productImages at index, or fallbackImageUrl
+          // Variant Image: only if available specifically on the variant
           const variantImage =
             variant.images?.[0]?.thumbnailUrl ||
-            variant.images?.[0]?.url ||
-            productImages?.[index]?.thumbnailUrl ||
-            productImages?.[index]?.url ||
-            fallbackImageUrl;
+            variant.images?.[0]?.url;
+          const hasImage = Boolean(variantImage);
 
           // Extract option label
           const colorAttr = variant.attributeValues?.find(
@@ -110,19 +120,125 @@ export function ProductVariantSelector({
 
           const numComparePrice = variant.compareAtPrice ? Number(variant.compareAtPrice) : null;
           const hasDiscount = Boolean(numComparePrice && numComparePrice > numPrice);
+          const discountPercent = hasDiscount && numComparePrice
+            ? Math.round(((numComparePrice - numPrice) / numComparePrice) * 100)
+            : 0;
 
           const isInactive = Boolean(variant.status && variant.status.toUpperCase() !== 'ACTIVE');
-          const availableQuantity = variant.inventory?.availableQuantity;
+          const availableQuantity = variant.inventory?.availableQuantity ?? variant.stock;
           const isOutOfStock = availableQuantity !== undefined && availableQuantity <= 0;
           const isUnavailable = isInactive || isOutOfStock;
 
+          // With image card (Flipkart style thumbnail + details)
+          if (hasImage) {
+            return (
+              <TouchableOpacity
+                key={variant.id || index}
+                activeOpacity={0.8}
+                onPress={() => onSelectVariant(index)}
+                style={[
+                  styles.imageVariantCard,
+                  {
+                    borderColor: isSelected
+                      ? theme.primary
+                      : isDark
+                      ? '#334155'
+                      : '#E2E8F0',
+                    backgroundColor: isSelected
+                      ? isDark
+                        ? '#1E293B'
+                        : '#FAF7F2'
+                      : isDark
+                      ? '#0F172A'
+                      : '#FFFFFF',
+                    opacity: isUnavailable ? 0.45 : 1,
+                  },
+                ]}
+              >
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: variantImage }}
+                    style={styles.variantThumbnail}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={0}
+                  />
+                  {isSelected && (
+                    <View style={[styles.checkCircle, { backgroundColor: theme.primary }]}>
+                      <Check size={9} color="#FFFFFF" strokeWidth={3} />
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.variantInfo}>
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.optionNameText,
+                      {
+                        color: isSelected
+                          ? isDark
+                            ? '#F8FAFC'
+                            : '#0F172A'
+                          : isDark
+                          ? '#94A3B8'
+                          : '#475569',
+                        fontWeight: isSelected ? '700' : '600',
+                      },
+                    ]}
+                  >
+                    {optionName}
+                  </Text>
+
+                  <View style={styles.priceRow}>
+                    <Text
+                      style={[
+                        styles.priceText,
+                        {
+                          color: isSelected
+                            ? isDark
+                              ? '#E2B897'
+                              : '#2D2621'
+                            : isDark
+                            ? '#CBD5E1'
+                            : '#1E293B',
+                        },
+                      ]}
+                    >
+                      {currency}{formattedPrice}
+                    </Text>
+
+                    {hasDiscount && (
+                      <Text style={styles.comparePriceText}>
+                        {currency}{numComparePrice?.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </Text>
+                    )}
+
+                    {discountPercent > 0 && (
+                      <Text style={styles.discountPercentText}>
+                        {discountPercent}% off
+                      </Text>
+                    )}
+                  </View>
+
+                  {isUnavailable ? (
+                    <Text style={styles.outOfStockText}>Out of stock</Text>
+                  ) : availableQuantity !== undefined && availableQuantity <= 5 ? (
+                    <Text style={styles.lowStockText}>Only {availableQuantity} left</Text>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            );
+          }
+
+          // Without image card (Flipkart style compact pill: variant name + price)
           return (
             <TouchableOpacity
               key={variant.id || index}
               activeOpacity={0.8}
               onPress={() => onSelectVariant(index)}
               style={[
-                styles.variantCard,
+                styles.textVariantCard,
                 {
                   borderColor: isSelected
                     ? theme.primary
@@ -136,87 +252,59 @@ export function ProductVariantSelector({
                     : isDark
                     ? '#0F172A'
                     : '#FFFFFF',
-                  opacity: isUnavailable ? 0.5 : 1,
+                  opacity: isUnavailable ? 0.45 : 1,
                 },
               ]}
             >
-              {/* Variant Thumbnail Image or Icon placeholder */}
-              <View style={styles.imageContainer}>
-                {variantImage ? (
-                  <Image
-                    source={{ uri: variantImage }}
-                    style={styles.variantThumbnail}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    transition={0}
-                  />
-                ) : (
-                  <View style={styles.placeholderContainer}>
-                    <Layers size={18} color={isDark ? '#64748B' : '#94A3B8'} />
-                  </View>
-                )}
-                {isSelected && (
-                  <View style={[styles.checkCircle, { backgroundColor: theme.primary }]}>
-                    <Check size={9} color="#FFFFFF" strokeWidth={3} />
-                  </View>
-                )}
-              </View>
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.textOptionName,
+                  {
+                    color: isSelected
+                      ? isDark
+                        ? '#F8FAFC'
+                        : '#0F172A'
+                      : isDark
+                      ? '#CBD5E1'
+                      : '#334155',
+                    fontWeight: isSelected ? '800' : '600',
+                  },
+                ]}
+              >
+                {optionName}
+              </Text>
 
-              {/* Variant Details Text */}
-              <View style={styles.variantInfo}>
+              <View style={styles.textPriceRow}>
                 <Text
-                  numberOfLines={1}
                   style={[
-                    styles.optionNameText,
+                    styles.textPrice,
                     {
                       color: isSelected
                         ? isDark
-                          ? '#F8FAFC'
-                          : '#0F172A'
+                          ? '#E2B897'
+                          : '#2D2621'
                         : isDark
                         ? '#94A3B8'
-                        : '#475569',
-                      fontWeight: isSelected ? '700' : '600',
+                        : '#64748B',
                     },
                   ]}
                 >
-                  {optionName}
+                  {currency}{formattedPrice}
                 </Text>
 
-                <View style={styles.priceRow}>
-                  <Text
-                    style={[
-                      styles.priceText,
-                      {
-                        color: isSelected
-                          ? isDark
-                            ? '#E2B897'
-                            : '#2D2621'
-                          : isDark
-                          ? '#CBD5E1'
-                          : '#1E293B',
-                      },
-                    ]}
-                  >
-                    {currency}{formattedPrice}
+                {discountPercent > 0 && (
+                  <Text style={styles.discountPercentText}>
+                    {discountPercent}% off
                   </Text>
-
-                  {hasDiscount && (
-                    <Text style={styles.comparePriceText}>
-                      {currency}{numComparePrice?.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                    </Text>
-                  )}
-                </View>
-
-                {/* Stock or Unavailable Tag */}
-                {isInactive ? (
-                  <Text style={styles.outOfStockText}>Unavailable</Text>
-                ) : isOutOfStock ? (
-                  <Text style={styles.outOfStockText}>Out of stock</Text>
-                ) : availableQuantity !== undefined && availableQuantity <= 5 ? (
-                  <Text style={styles.lowStockText}>Only {availableQuantity} left!</Text>
-                ) : null}
+                )}
               </View>
+
+              {isUnavailable ? (
+                <Text style={styles.outOfStockText}>Out of stock</Text>
+              ) : availableQuantity !== undefined && availableQuantity <= 5 ? (
+                <Text style={styles.lowStockText}>Only {availableQuantity} left</Text>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -257,17 +345,18 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 2,
   },
-  variantCard: {
+  imageVariantCard: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    minWidth: 160,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+    minWidth: 140,
     maxWidth: 220,
-    height: 64,
-    gap: 10,
+    minHeight: 58,
+    gap: 8,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -276,18 +365,11 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#F1F5F9',
-  },
-  placeholderContainer: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148, 163, 184, 0.15)',
   },
   variantThumbnail: {
     width: '100%',
@@ -305,6 +387,7 @@ const styles = StyleSheet.create({
   },
   variantInfo: {
     flex: 1,
+    justifyContent: 'center',
     gap: 2,
   },
   optionNameText: {
@@ -312,11 +395,13 @@ const styles = StyleSheet.create({
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    columnGap: 5,
+    rowGap: 1,
   },
   priceText: {
-    fontSize: 13.5,
+    fontSize: 13,
     fontWeight: '800',
   },
   comparePriceText: {
@@ -324,13 +409,48 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     textDecorationLine: 'line-through',
   },
-  lowStockText: {
+  discountPercentText: {
     fontSize: 10,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  textVariantCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 72,
+    minHeight: 52,
+    gap: 3,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  textOptionName: {
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  textPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  textPrice: {
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  lowStockText: {
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#D97706',
   },
   outOfStockText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '700',
     color: '#EF4444',
   },

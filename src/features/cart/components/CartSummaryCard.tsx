@@ -89,10 +89,14 @@ export const CartSummaryCard = memo(function CartSummaryCard({
           }`}
         >
           <View className="flex-row items-center gap-2">
-            <Truck
-              size={16}
-              color={isFreeShipping ? '#10B981' : isDark ? '#E2B897' : '#8C5338'}
-            />
+            {isFreeShipping ? (
+              <Sparkles size={16} color="#10B981" />
+            ) : (
+              <Truck
+                size={16}
+                color={isDark ? '#E2B897' : '#8C5338'}
+              />
+            )}
             <Text
               className={`text-xs font-bold flex-1 ${
                 isFreeShipping
@@ -101,8 +105,8 @@ export const CartSummaryCard = memo(function CartSummaryCard({
               }`}
             >
               {isFreeShipping
-                ? 'ðŸŽ‰ You unlocked FREE standard delivery!'
-                : `Add $₹${remainingForFreeShipping.toLocaleString('en-IN')} more for FREE delivery`}
+                ? 'You unlocked FREE standard delivery!'
+                : `Add ${currency}${remainingForFreeShipping.toLocaleString('en-IN')} more for FREE delivery`}
             </Text>
           </View>
 
